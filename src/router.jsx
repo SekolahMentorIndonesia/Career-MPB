@@ -1,52 +1,90 @@
+import { Suspense, lazy } from 'react';
 import { createBrowserRouter } from 'react-router-dom';
 import PublicLayout from './layouts/PublicLayout';
 import DashboardLayout from './layouts/DashboardLayout';
 import ProtectedRoute from './components/ProtectedRoute';
 import DashboardRedirect from './components/DashboardRedirect';
+import { Loader2 } from 'lucide-react';
+
+// Loading fallback component
+const PageLoader = () => (
+  <div className="flex items-center justify-center min-h-[400px]">
+    <Loader2 className="w-10 h-10 animate-spin text-blue-600" />
+  </div>
+);
 
 // Public Pages
-import Home from './pages/public/Home';
-import Login from './pages/public/Login';
-import Register from './pages/public/Register';
-import Jobs from './pages/public/Jobs';
-import JobDetail from './pages/public/JobDetail';
-import Apply from './pages/public/Apply';
-import UserPsychotestExam from './pages/public/UserPsychotestExam';
+const Home = lazy(() => import('./pages/public/Home'));
+const Login = lazy(() => import('./pages/public/Login'));
+const Register = lazy(() => import('./pages/public/Register'));
+const JobDetail = lazy(() => import('./pages/public/JobDetail'));
+const Apply = lazy(() => import('./pages/public/Apply'));
+const UserPsychotestExam = lazy(() => import('./pages/public/UserPsychotestExam'));
+const VerifyEmail = lazy(() => import('./pages/public/VerifyEmail'));
+
 // Dashboard Pages - User
-import UserOverview from './pages/dashboard/UserOverview';
-import UserProfile from './pages/dashboard/UserProfile';
-import UserApplications from './pages/dashboard/UserApplications';
-import UserDocuments from './pages/dashboard/UserDocuments';
-import UserNotifications from './pages/dashboard/UserNotifications';
+const UserOverview = lazy(() => import('./pages/dashboard/UserOverview'));
+const UserProfile = lazy(() => import('./pages/dashboard/UserProfile'));
+const AccountSettings = lazy(() => import('./pages/dashboard/AccountSettings'));
+const UserApplications = lazy(() => import('./pages/dashboard/UserApplications'));
+const UserDocuments = lazy(() => import('./pages/dashboard/UserDocuments'));
+const UserNotifications = lazy(() => import('./pages/dashboard/UserNotifications'));
+const UserPsychotest = lazy(() => import('./pages/dashboard/UserPsychotest'));
 
 // Dashboard Pages - Admin
-import AdminOverview from './pages/dashboard/AdminOverview';
-import AdminApplicants from './pages/dashboard/AdminApplicants';
-import AdminPsychotest from './pages/dashboard/AdminPsychotest';
-import AdminProfile from './pages/dashboard/AdminProfile';
-import AdminNotifications from './pages/dashboard/AdminNotifications';
-import AdminRekap from './pages/dashboard/AdminRekap';
-import AdminManageJobs from './pages/dashboard/AdminManageJobs';
+const AdminOverview = lazy(() => import('./pages/dashboard/AdminOverview'));
+const AdminApplicants = lazy(() => import('./pages/dashboard/AdminApplicants'));
+const AdminPsychotest = lazy(() => import('./pages/dashboard/AdminPsychotest'));
+const AdminProfile = lazy(() => import('./pages/dashboard/AdminProfile'));
+const AdminNotifications = lazy(() => import('./pages/dashboard/AdminNotifications'));
+const AdminRekap = lazy(() => import('./pages/dashboard/AdminRekap'));
+const AdminManageJobs = lazy(() => import('./pages/dashboard/AdminManageJobs'));
 
 const router = createBrowserRouter([
   {
     path: '/',
-    element: <PublicLayout />,
+    element: (
+      <Suspense fallback={null}>
+        <PublicLayout />
+      </Suspense>
+    ),
     children: [
       { index: true, element: <Home /> },
-      { path: 'jobs', element: <Jobs /> },
-      { path: 'jobs/:slug', element: <JobDetail /> },
+      { path: 'jobs/:slug/details', element: <JobDetail /> },
       { path: 'apply/:jobId', element: <Apply /> },
-      { path: 'test-psikotes/:code', element: <UserPsychotestExam /> },
     ],
   },
   {
+    path: '/test-psikotes/:code',
+    element: (
+      <Suspense fallback={<PageLoader />}>
+        <UserPsychotestExam />
+      </Suspense>
+    ),
+  },
+  {
+    path: '/verify-email',
+    element: (
+      <Suspense fallback={<PageLoader />}>
+        <VerifyEmail />
+      </Suspense>
+    ),
+  },
+  {
     path: '/login',
-    element: <Login />,
+    element: (
+      <Suspense fallback={<PageLoader />}>
+        <Login />
+      </Suspense>
+    ),
   },
   {
     path: '/register',
-    element: <Register />,
+    element: (
+      <Suspense fallback={<PageLoader />}>
+        <Register />
+      </Suspense>
+    ),
   },
   {
     path: '/dashboard',
@@ -59,8 +97,10 @@ const router = createBrowserRouter([
   {
     path: '/dashboard/admin',
     element: (
-      <ProtectedRoute requiredRole="HR">
-        <DashboardLayout />
+      <ProtectedRoute requiredRole="ADMIN">
+        <Suspense fallback={<PageLoader />}>
+          <DashboardLayout />
+        </Suspense>
       </ProtectedRoute>
     ),
     children: [
@@ -76,16 +116,20 @@ const router = createBrowserRouter([
   {
     path: '/dashboard/user',
     element: (
-      <ProtectedRoute requiredRole="CANDIDATE">
-        <DashboardLayout />
+      <ProtectedRoute requiredRole="USER">
+        <Suspense fallback={<PageLoader />}>
+          <DashboardLayout />
+        </Suspense>
       </ProtectedRoute>
     ),
     children: [
       { index: true, element: <UserOverview /> },
       { path: 'overview', element: <UserOverview /> },
       { path: 'profile', element: <UserProfile /> },
+      { path: 'settings', element: <AccountSettings /> },
       { path: 'documents', element: <UserDocuments /> },
       { path: 'applications', element: <UserApplications /> },
+      { path: 'psychotest', element: <UserPsychotest /> },
       { path: 'notifications', element: <UserNotifications /> },
     ],
   },

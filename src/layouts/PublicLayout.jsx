@@ -1,5 +1,5 @@
 import { Link, Outlet, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../hooks/useAuth';
 import { Globe, ChevronDown, Menu, X } from 'lucide-react';
 import { useState } from 'react';
 
@@ -23,7 +23,7 @@ const PublicLayout = () => {
               <span className="text-[10px] font-medium text-gray-500 tracking-wide">Multiusaha Prioritas Bersama</span>
             </div>
           </Link>
-          
+
           {/* Right: Navigation and Actions */}
           <div className="flex items-center gap-4 sm:gap-6 md:gap-8">
             {/* Desktop Navigation */}
@@ -43,7 +43,7 @@ const PublicLayout = () => {
                   </div>
                 </div>
               </div>
-              <Link to="/jobs" className="text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors">
+              <Link to="/#karir-section" className="text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors">
                 Karir
               </Link>
               <Link to="/contact" className="text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors">
@@ -65,9 +65,13 @@ const PublicLayout = () => {
             {isAuthenticated ? (
               <div className="relative group">
                 <button className="flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors focus:outline-none">
-                  <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold text-sm">
-                    {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
-                  </div>
+                  {user?.photo ? (
+                    <img src={`http://${window.location.hostname}/backend${user.photo}`} alt="Profile" className="w-8 h-8 rounded-full object-cover" />
+                  ) : (
+                    <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold text-sm">
+                      {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
+                    </div>
+                  )}
                   <ChevronDown className="w-4 h-4" />
                 </button>
                 <div className="absolute right-0 mt-2 w-56 bg-white border border-gray-200 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all transform translate-y-2 group-hover:translate-y-0 z-50">
@@ -79,7 +83,7 @@ const PublicLayout = () => {
                     <Link to="/dashboard" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-blue-600">
                       Dashboard
                     </Link>
-                    <Link to="/dashboard/admin/settings" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-blue-600">
+                    <Link to={user?.role === 'ADMIN' ? "/dashboard/admin/profile" : "/dashboard/user/settings"} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-blue-600">
                       Settings
                     </Link>
                     <button
@@ -106,7 +110,7 @@ const PublicLayout = () => {
             )}
 
             {/* Mobile Menu Button */}
-            <button 
+            <button
               className="md:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-lg"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             >
@@ -120,9 +124,9 @@ const PublicLayout = () => {
           <div className="md:hidden border-t bg-white">
             <div className="px-4 pt-2 pb-6 space-y-2">
               <Link to="/" className="block py-3 text-base font-medium text-gray-900 border-b border-gray-100">Home</Link>
-              <Link to="/jobs" className="block py-3 text-base font-medium text-gray-600 border-b border-gray-100">Karir</Link>
+              <Link to="/#karir-section" className="block py-3 text-base font-medium text-gray-600 border-b border-gray-100">Karir</Link>
               <Link to="/contact" className="block py-3 text-base font-medium text-gray-600 border-b border-gray-100">Hubungi Kami</Link>
-              
+
               {!isAuthenticated && (
                 <div className="pt-4 grid grid-cols-2 gap-4">
                   <Link to="/login" className="flex justify-center py-2.5 text-sm font-bold text-gray-700 border border-gray-300 rounded-lg">

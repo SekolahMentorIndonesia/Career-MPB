@@ -1,75 +1,120 @@
-import React from 'react';
-import { Brain, Clock, CheckCircle } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Brain, Clock, CheckCircle, ExternalLink } from 'lucide-react';
+import { useNotification } from '../../context/NotificationContext';
 
 const UserPsychotest = () => {
-  const psychotestStatus = 'Belum Bisa Akses'; // Options: 'Belum Bisa Akses', 'Menunggu Link', 'Selesai'
-  const isButtonDisabled = psychotestStatus !== 'Menunggu Link';
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const { addNotification } = useNotification();
 
-  const getStatusIcon = (status) => {
-    switch (status) {
-      case 'Belum Bisa Akses':
-        return <Brain className="h-6 w-6 text-gray-500" />;
-      case 'Menunggu Link':
-        return <Clock className="h-6 w-6 text-yellow-500" />;
-      case 'Selesai':
-        return <CheckCircle className="h-6 w-6 text-green-500" />;
-      default:
-        return <Brain className="h-6 w-6 text-gray-500" />;
-    }
+  useEffect(() => {
+    const fetchPsychotest = async () => {
+      try {
+        const response = await fetch(`http://${window.location.hostname}:8000/api/user/psychotest`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+        const result = await response.json();
+        if (result.success) {
+          setData(result.data);
+        }
+      } catch (error) {
+        console.error('Error fetching psychotest:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPsychotest();
+  }, []);
+
+  const getStatusDisplay = () => {
+    if (!data) return { icon: <Brain className="h-6 w-6 text-gray-500" />, text: 'Belum Ada Penjadwalan', subtext: 'Anda belum memiliki jadwal psikotes. Silakan tunggu update setelah lolos seleksi berkas.', color: 'gray' };
+
+    // If status is still Administrasi or Ditolak, no link yet
+    if (data.status === 'Administrasi') return { icon: <Clock className="h-6 w-6 text-yellow-500" />, text: 'Menunggu Review Berkas', subtext: 'Lamaran Anda sedang direview. Link psikotes akan muncul jika Anda lolos tahap administrasi.', color: 'orange' };
+    if (data.status === 'Ditolak') return { icon: <CheckCircle className="h-6 w-6 text-red-500" />, text: 'Belum Beruntung', subtext: 'Maaf, lamaran Anda belum memenuhi kualifikasi kami untuk tahap selanjutnya.', color: 'red' };
+
+    // If moved to Psikotes but link not yet assigned by admin
+    if (!data.link) return { icon: <Clock className="h-6 w-6 text-blue-500" />, text: 'Terjadwal: Psikotes', subtext: 'Anda lolos ke tahap psikotes! Admin akan segera mengirimkan link pengerjaan di sini.', color: 'blue' };
+
+    // If link assigned
+    return { icon: <Brain className="h-6 w-6 text-indigo-500" />, text: 'Psikotes Tersedia', subtext: 'Link psikotes Anda sudah siap. Silakan klik tombol di bawah untuk mulai mengerjakan.', color: 'indigo' };
   };
 
-  const getStatusText = (status) => {
-    switch (status) {
-      case 'Belum Bisa Akses':
-        return 'Anda belum dapat mengakses psikotes saat ini. Harap lengkapi profil Anda atau tunggu instruksi selanjutnya.';
-      case 'Menunggu Link':
-        return 'Link psikotes akan segera dikirimkan kepada Anda. Mohon periksa email secara berkala.';
-      case 'Selesai':
-        return 'Anda telah menyelesaikan psikotes. Hasil akan segera diumumkan.';
-      default:
-        return 'Status psikotes tidak diketahui.';
-    }
-  };
+  const status = getStatusDisplay();
+
+  if (loading) {
+    return (
+      <div className="p-6 flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">Psikotes</h1>
-        <span className="text-sm font-medium text-gray-600 bg-yellow-200 px-3 py-1 rounded-full">Mode Demo / UI Mock</span>
+      <h1 className="text-3xl font-bold text-gray-900 mb-6">Psikotes</h1>
+
+      <div className="bg-white shadow-lg rounded-2xl p-8 mb-8 border border-gray-100">
+        <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+          {status.icon} Status Tahapan Seleksi
+        </h2>
+
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 p-6 rounded-2xl bg-gray-50 border border-gray-100">
+          <div className="space-y-1">
+            <p className="text-lg font-bold text-gray-900">{status.text}</p>
+            <p className="text-gray-600 max-w-xl">{status.subtext}</p>
+          </div>
+
+          <div className="flex items-center">
+            {data?.link ? (
+              <a
+                href={data.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200"
+              >
+                Mulai Psikotes <ExternalLink className="w-5 h-5" />
+              </a>
+            ) : (
+              <span className="px-4 py-2 bg-gray-200 text-gray-500 font-bold rounded-lg text-sm">
+                Akses Belum Tersedia
+              </span>
+            )}
+          </div>
+        </div>
       </div>
 
-      <div className="bg-white shadow-md rounded-lg p-6 mb-8">
-        <h2 className="text-2xl font-semibold text-gray-800 mb-4">Status Psikotes Anda</h2>
-        <div className="flex items-center space-x-4 mb-6">
-          {getStatusIcon(psychotestStatus)}
-          <p className="text-lg text-gray-700 font-medium">{psychotestStatus}</p>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="bg-white shadow-md rounded-xl p-6 border border-gray-100">
+          <h3 className="text-lg font-bold text-gray-900 mb-4">Informasi Penting</h3>
+          <ul className="space-y-3 text-sm text-gray-600">
+            <li className="flex gap-2">
+              <span className="text-indigo-600 font-bold">•</span>
+              Pastikan koneksi internet stabil saat mengerjakan.
+            </li>
+            <li className="flex gap-2">
+              <span className="text-indigo-600 font-bold">•</span>
+              Siapkan alat tulis dan kertas coretan jika diperlukan.
+            </li>
+            <li className="flex gap-2">
+              <span className="text-indigo-600 font-bold">•</span>
+              Kerjakan di tempat yang tenang dan kondusif.
+            </li>
+          </ul>
         </div>
-        <p className="text-gray-600 mb-6">{getStatusText(psychotestStatus)}</p>
 
-        <div className="flex items-center space-x-4">
-          <button
-            className={`px-6 py-3 rounded-md text-white font-semibold transition-colors duration-200 ${
-              isButtonDisabled
-                ? 'bg-gray-400 cursor-not-allowed'
-                : 'bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2'
-            }`}
-            disabled={isButtonDisabled}
-            title={isButtonDisabled ? 'Tombol ini dinonaktifkan dalam mode demo.' : 'Mulai Psikotes'}
-          >
-            Mulai Psikotes
+        <div className="bg-blue-600 shadow-lg rounded-xl p-6 text-white">
+          <h3 className="text-lg font-bold mb-4">Butuh Bantuan?</h3>
+          <p className="text-blue-100 text-sm mb-6">
+            Jika mengalami kendala teknis saat mengerjakan psikotes, silakan hubungi tim IT Support kami.
+          </p>
+          <button className="px-4 py-2 bg-white text-blue-600 font-bold rounded-lg text-sm hover:bg-blue-50 transition-colors">
+            Hubungi CS MPB
           </button>
-          {isButtonDisabled && (
-            <p className="text-sm text-gray-500">Tombol ini dinonaktifkan karena {psychotestStatus.toLowerCase()}.</p>
-          )}
         </div>
-      </div>
-
-      <div className="bg-white shadow-md rounded-lg p-6">
-        <h2 className="text-2xl font-semibold text-gray-800 mb-4">Informasi Tambahan</h2>
-        <p className="text-gray-600">
-          Halaman ini menampilkan status terkini mengenai tahapan psikotes Anda. Harap perhatikan instruksi dan jadwal yang diberikan oleh tim rekrutmen.
-          Jika ada pertanyaan lebih lanjut, jangan ragu untuk menghubungi administrator.
-        </p>
       </div>
     </div>
   );

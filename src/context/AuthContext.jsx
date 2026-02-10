@@ -1,30 +1,27 @@
-import { createContext, useContext, useState, useEffect } from 'react';
-
-const AuthContext = createContext(null);
+import { useState, useEffect } from 'react';
+import { AuthContext } from './AuthContextObject';
+export { AuthContext };
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(localStorage.getItem('token') || null);
   const [loading, setLoading] = useState(true);
 
+  const API_URL = `http://${window.location.hostname}:8000/api`;
+
   useEffect(() => {
-    // Mock validation of token on mount
+    // Validate token on mount
     const validateToken = async () => {
       if (token) {
-        // In a real app, verify token with backend
-        // Here we simulate decoding the token to get user info
         try {
-          // Mock: Decode token logic
           const storedUser = JSON.parse(localStorage.getItem('user'));
           if (storedUser) {
             setUser(storedUser);
           } else {
-            setToken(null);
-            localStorage.removeItem('token');
+            logout();
           }
-        } catch (error) {
-          setToken(null);
-          localStorage.removeItem('token');
+        } catch {
+          logout();
         }
       }
       setLoading(false);
@@ -34,35 +31,70 @@ export const AuthProvider = ({ children }) => {
   }, [token]);
 
   const login = async (email, password) => {
-    // Mock Login Logic
-    // In real app: API call -> get JWT -> setToken
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        if (
-          (email === 'admin@gmail.com' && password === '4dmin3s3mi01927') ||
-          (email === 'user@gmail.com' && password === 'passw0rd12')
-        ) {
-          const mockToken = "mock-jwt-token-" + Math.random().toString(36).substr(2);
-          let mockUser;
+    try {
+      const response = await fetch(`${API_URL}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
 
-          if (email === 'admin@gmail.com') {
-            mockUser = { email, role: 'HR', name: 'Admin HR' };
-          } else {
-            mockUser = { email, role: 'CANDIDATE', name: 'Regular User' };
-          }
+      const result = await response.json();
 
-          setToken(mockToken);
-          setUser(mockUser);
-          
-          localStorage.setItem('token', mockToken);
-          localStorage.setItem('user', JSON.stringify(mockUser));
-          
-          resolve(mockUser);
-        } else {
-          reject(new Error('Invalid credentials'));
-        }
-      }, 500);
-    });
+      if (result.status === 'success') {
+        const { token, user } = result.data;
+        setToken(token);
+        setUser(user);
+
+        localStorage.setItem('token', token);
+        localStorage.setItem('user', JSON.stringify(user));
+
+        return user;
+      } else {
+        throw new Error(result.message || 'Login failed');
+      }
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  const register = async (name, email, phone, password) => {
+    try {
+      const response = await fetch(`${API_URL}/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, phone, password }),
+      });
+
+      const result = await response.json();
+
+      if (result.status === 'success') {
+        return result.data; // May contain debug_otp
+      } else {
+        throw new Error(result.message || 'Registration failed');
+      }
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  const verifyEmail = async (email, otp) => {
+    try {
+      const response = await fetch(`${API_URL}/auth/verify-email`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, otp }),
+      });
+
+      const result = await response.json();
+
+      if (result.status === 'success') {
+        return true;
+      } else {
+        throw new Error(result.message || 'Verification failed');
+      }
+    } catch (error) {
+      throw error;
+    }
   };
 
   const logout = () => {
@@ -72,17 +104,18 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('user');
   };
 
+  const updateUser = (newUserData) => {
+    setUser((prevUser) => {
+      const updatedUser = { ...prevUser, ...newUserData };
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+      return updatedUser;
+    });
+  };
+
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, loading, isAuthenticated: !!token }}>
+    <AuthContext.Provider value={{ user, token, login, logout, register, verifyEmail, loading, isAuthenticated: !!token, updateUser }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
-};

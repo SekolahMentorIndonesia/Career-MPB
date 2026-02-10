@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../hooks/useAuth';
 import { Lock, Mail, Loader2, Eye, EyeOff } from 'lucide-react';
 import GoogleIcon from '../../assets/google-icon.svg'; // Assuming you have these icons in assets
 import FacebookIcon from '../../assets/facebook-icon.svg';
@@ -12,11 +12,11 @@ const Login = () => {
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  
+
   const { login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  
+
   const from = location.state?.from?.pathname || '/';
 
   const handleSubmit = async (e) => {
@@ -26,16 +26,16 @@ const Login = () => {
 
     try {
       const user = await login(email, password);
-      
+
       // Redirect Logic based on Role
-      if (user.role === 'HR') {
-        navigate('/dashboard');
+      if (user.role === 'ADMIN') {
+        navigate('/dashboard/admin');
       } else {
-        // If they were trying to access a specific page, go there, else go to jobs
-        navigate(from === '/' ? '/jobs' : from);
+        // If they were trying to access a specific page, go there, else go to dashboard
+        navigate(from === '/' ? '/dashboard/user' : from);
       }
-    } catch {
-      setError('Login failed. Please check your credentials.');
+    } catch (err) {
+      setError(err.message || 'Login failed. Please check your credentials.');
     } finally {
       setIsSubmitting(false);
     }
@@ -46,13 +46,8 @@ const Login = () => {
       <div className="max-w-md w-full bg-white rounded-xl shadow-lg p-8 space-y-6 border border-gray-200">
         {/* Top Icon */}
         <div className="flex justify-center mb-6">
-          <div className="w-16 h-16 bg-gray-800 rounded-xl flex items-center justify-center shadow-md">
-            <div className="grid grid-cols-2 gap-1 p-1">
-              <span className="w-3 h-3 bg-gray-400 rounded-sm"></span>
-              <span className="w-3 h-3 bg-gray-400 rounded-sm"></span>
-              <span className="w-3 h-3 bg-gray-400 rounded-sm"></span>
-              <span className="w-3 h-3 bg-gray-400 rounded-sm"></span>
-            </div>
+          <div className="w-16 h-16 bg-[#0F172A] rounded-xl flex items-center justify-center shadow-md overflow-hidden">
+            <img src="/logo.webp" alt="Logo" className="w-full h-full object-contain p-2" />
           </div>
         </div>
 
@@ -64,14 +59,14 @@ const Login = () => {
             Please sign in to start your rental application
           </p>
         </div>
-        
+
         <form className="space-y-4" onSubmit={handleSubmit}>
           {error && (
             <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm text-center border border-red-200">
               {error}
             </div>
           )}
-          
+
           <div>
             <label htmlFor="email-address" className="sr-only">Email</label>
             <div className="relative">
@@ -91,7 +86,7 @@ const Login = () => {
               />
             </div>
           </div>
-          
+
           <div>
             <label htmlFor="password" className="sr-only">Password</label>
             <div className="relative">

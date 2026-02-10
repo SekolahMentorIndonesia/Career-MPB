@@ -12,6 +12,7 @@
   "dependencies": {
     "@headlessui/react": "^2.2.9",
     "clsx": "^2.1.1",
+    "date-fns": "^4.1.0",
     "gov-rich-text-editor": "^1.0.7",
     "lucide-react": "^0.563.0",
     "react": "^19.2.0",

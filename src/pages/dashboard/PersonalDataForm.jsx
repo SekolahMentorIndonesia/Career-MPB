@@ -5,20 +5,16 @@ const PersonalDataForm = ({
   name, setName,
   email, setEmail,
   phone, setPhone,
-  domicile, setDomicile,
-  ktpAddress, setKtpAddress,
+
+
   nik, setNik,
   religion, setReligion,
   height, setHeight,
   weight, setWeight,
   birthPlace, setBirthPlace,
   birthDate, setBirthDate,
-  ktpKelurahan, setKtpKelurahan,
-  ktpKota, setKtpKota,
-  ktpKabupaten, setKtpKabupaten,
-  domicileKelurahan, setDomicileKelurahan,
-  domicileKota, setDomicileKota,
-  domicileKabupaten, setDomicileKabupaten,
+
+
 }) => {
   return (
     <div className="space-y-4">
@@ -154,82 +150,7 @@ const PersonalDataForm = ({
         </div>
       </div>
 
-      <div className="space-y-4">
-        <h3 className="text-lg font-bold text-gray-800 mb-4">ALAMAT KTP</h3>
-        <div>
-          <label htmlFor="ktp-address" className="block text-sm font-semibold text-gray-700">Alamat</label>
-          <div className="mt-1 relative rounded-md shadow-sm">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <MapPin className="h-5 w-5 text-gray-400" />
-            </div>
-            <textarea
-              name="ktp-address"
-              id="ktp-address"
-              rows="3"
-              className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 focus:shadow-md transition-all duration-200 sm:text-sm"
-              placeholder="Alamat KTP Anda"
-              value={ktpAddress}
-              onChange={(e) => setKtpAddress(e.target.value)}
-            ></textarea>
-          </div>
-        </div>
 
-        <div>
-          <label htmlFor="ktp-kelurahan" className="block text-sm font-semibold text-gray-700">Kelurahan</label>
-          <div className="mt-1 relative rounded-md shadow-sm">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <MapPin className="h-5 w-5 text-gray-400" />
-            </div>
-            <input
-              type="text"
-              name="ktp-kelurahan"
-              id="ktp-kelurahan"
-              className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 focus:shadow-md transition-all duration-200 sm:text-sm"
-              placeholder="Kelurahan sesuai KTP"
-              value={ktpKelurahan}
-              onChange={(e) => setKtpKelurahan(e.target.value)}
-            />
-          </div>
-        </div>
-
-        <div>
-          <label htmlFor="ktp-kota" className="block text-sm font-semibold text-gray-700">Kecamatan</label>
-          <div className="mt-1 relative rounded-md shadow-sm">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <MapPin className="h-5 w-5 text-gray-400" />
-            </div>
-            <input
-              type="text"
-              name="ktp-kota"
-              id="ktp-kota"
-              className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 focus:shadow-md transition-all duration-200 sm:text-sm"
-              placeholder="Kota sesuai KTP"
-              value={ktpKota}
-              onChange={(e) => setKtpKota(e.target.value)}
-            />
-          </div>
-        </div>
-
-        <div>
-          <label htmlFor="ktp-kabupaten" className="block text-sm font-semibold text-gray-700">Kabupaten/Kota</label>
-          <div className="mt-1 relative rounded-md shadow-sm">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <MapPin className="h-5 w-5 text-gray-400" />
-            </div>
-            <input
-              type="text"
-              name="ktp-kabupaten"
-              id="ktp-kabupaten"
-              className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 focus:shadow-md transition-all duration-200 sm:text-sm"
-              placeholder="Kabupaten sesuai KTP"
-              value={ktpKabupaten}
-              onChange={(e) => setKtpKabupaten(e.target.value)}
-            />
-          </div>
-        </div>
-      </div>
-
-      <div className="border-b border-gray-200 pb-4 mb-4"></div>
 
       <div>
         <label htmlFor="birth-place" className="block text-sm font-semibold text-gray-700">Tempat Lahir</label>
@@ -266,82 +187,7 @@ const PersonalDataForm = ({
         </div>
       </div>
 
-      <div className="space-y-4 mt-6">
-        <h3 className="text-lg font-bold text-gray-800 mb-4">ALAMAT DOMISILI</h3>
-        <div>
-          <label htmlFor="domicile" className="block text-sm font-semibold text-gray-700">Alamat Lengkap</label>
-          <div className="mt-1 relative rounded-md shadow-sm">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <MapPin className="h-5 w-5 text-gray-400" />
-            </div>
-            <input
-              type="text"
-              name="domicile"
-              id="domicile"
-              className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 focus:shadow-md transition-all duration-200 sm:text-sm"
-              placeholder="Kota/Kabupaten Domisili Anda"
-              value={domicile}
-              onChange={(e) => setDomicile(e.target.value)}
-            />
-          </div>
-        </div>
 
-        <div>
-          <label htmlFor="domicile-kelurahan" className="block text-sm font-semibold text-gray-700">Kelurahan</label>
-          <div className="mt-1 relative rounded-md shadow-sm">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <MapPin className="h-5 w-5 text-gray-400" />
-            </div>
-            <input
-              type="text"
-              name="domicile-kelurahan"
-              id="domicile-kelurahan"
-              className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 focus:shadow-md transition-all duration-200 sm:text-sm"
-              placeholder="Kelurahan domisili"
-              value={domicileKelurahan}
-              onChange={(e) => setDomicileKelurahan(e.target.value)}
-            />
-          </div>
-        </div>
-
-        <div>
-          <label htmlFor="domicile-kota" className="block text-sm font-semibold text-gray-700">Kecamatan</label>
-          <div className="mt-1 relative rounded-md shadow-sm">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <MapPin className="h-5 w-5 text-gray-400" />
-            </div>
-            <input
-              type="text"
-              name="domicile-kota"
-              id="domicile-kota"
-              className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 focus:shadow-md transition-all duration-200 sm:text-sm"
-              placeholder="Kota domisili"
-              value={domicileKota}
-              onChange={(e) => setDomicileKota(e.target.value)}
-            />
-          </div>
-        </div>
-
-        <div>
-          <label htmlFor="domicile-kabupaten" className="block text-sm font-semibold text-gray-700">Kabupaten/Kota</label>
-          <div className="mt-1 relative rounded-md shadow-sm">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <MapPin className="h-5 w-5 text-gray-400" />
-            </div>
-            <input
-              type="text"
-              name="domicile-kabupaten"
-              id="domicile-kabupaten"
-              className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 focus:shadow-md transition-all duration-200 sm:text-sm"
-              placeholder="Kabupaten domisili"
-              value={domicileKabupaten}
-              onChange={(e) => setDomicileKabupaten(e.target.value)}
-            />
-          </div>
-        </div>
-      </div>
-
-      <div className="border-b border-gray-200 pb-4 mb-4"></div>
 
       <div>
         <label htmlFor="height" className="block text-sm font-semibold text-gray-700">Tinggi Badan</label>

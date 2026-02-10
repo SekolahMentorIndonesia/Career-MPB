@@ -1,12 +1,56 @@
-import React, { useState } from 'react';
-import { Briefcase, Plus, X, ChevronsUpDown, MapPin, Users, Check } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Briefcase, Plus, X, ChevronsUpDown, MapPin, Users, Check, Building2, Calendar, FileText, Send, Pencil, Trash2, Loader2 } from 'lucide-react';
 import { Listbox, ListboxButton, ListboxOption, ListboxOptions, Transition } from '@headlessui/react';
+import { useNotification } from '../../context/NotificationContext';
+import ConfirmationModal from '../../components/ConfirmationModal';
 import clsx from 'clsx';
 
-const jobTypes = ['Fulltime', 'Parttime', 'Contract', 'Internship'];
+// Helper Component for Form Groups
+const FormGroup = ({ label, icon: Icon, children, hint }) => (
+  <div className="space-y-1.5">
+    <label className="flex items-center gap-2 text-sm font-bold text-gray-700">
+      {Icon && <Icon className="w-4 h-4 text-gray-400" />}
+      {label}
+    </label>
+    {children}
+    {hint && <p className="text-xs text-gray-400">{hint}</p>}
+  </div>
+);
+
+const DateRangeInput = ({ label, startValue, onStartChange, endValue, onEndChange, icon: Icon }) => (
+  <div className="bg-gray-50/50 p-4 rounded-xl border border-gray-100 space-y-3">
+    <div className="flex items-center gap-2 text-sm font-bold text-gray-800">
+      {Icon && <Icon className="w-4 h-4 text-blue-500" />}
+      {label}
+    </div>
+    <div className="grid grid-cols-2 gap-3">
+      <div className="space-y-1">
+        <label className="text-[10px] uppercase tracking-wider font-bold text-gray-400">Mulai</label>
+        <input
+          type="date"
+          className="block w-full px-3 py-2 border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all bg-white"
+          value={startValue}
+          onChange={(e) => onStartChange(e.target.value)}
+        />
+      </div>
+      <div className="space-y-1">
+        <label className="text-[10px] uppercase tracking-wider font-bold text-gray-400">Selesai</label>
+        <input
+          type="date"
+          className="block w-full px-3 py-2 border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all bg-white"
+          value={endValue}
+          onChange={(e) => onEndChange(e.target.value)}
+        />
+      </div>
+    </div>
+  </div>
+);
+
+const jobTypes = ['Fulltime', 'Parttime', 'Contract', 'Internship', 'Magang/PKL'];
 const targetAudiences = ['Umum (Semua Jenjang)', 'Fresh Graduate', 'Experienced'];
 
 const AdminManageJobs = () => {
+  const { showNotification } = useNotification();
   const [isAddJobModalOpen, setIsAddJobModalOpen] = useState(false);
   const [newJobTitle, setNewJobTitle] = useState('');
   const [newJobCompany, setNewJobCompany] = useState('');
@@ -23,6 +67,35 @@ const AdminManageJobs = () => {
   const [newJobIntStartDate, setNewJobIntStartDate] = useState('');
   const [newJobIntEndDate, setNewJobIntEndDate] = useState('');
   const [newJobAnnounceDate, setNewJobAnnounceDate] = useState('');
+  const [jobs, setJobs] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [editingJob, setEditingJob] = useState(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [jobToDelete, setJobToDelete] = useState(null);
+
+  useEffect(() => {
+    fetchJobs();
+  }, []);
+
+  const fetchJobs = async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch(`http://${window.location.hostname}:8000/api/jobs`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      const data = await response.json();
+      if (data.success) {
+        setJobs(data.data);
+      }
+    } catch (error) {
+      console.error('Error fetching jobs:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleOpenModal = () => {
     setIsAddJobModalOpen(true);
@@ -42,32 +115,110 @@ const AdminManageJobs = () => {
     setNewJobIntStartDate('');
     setNewJobIntEndDate('');
     setNewJobAnnounceDate('');
+    setEditingJob(null);
+  };
+
+  const handleEditJob = (job) => {
+    setEditingJob(job);
+    setNewJobTitle(job.title);
+    setNewJobCompany(job.company);
+    setNewJobType(job.type);
+    setNewJobDescription(job.description);
+    setNewJobTargetAudience(job.target_audience);
+    setNewJobLocation(job.location);
+    setNewJobRegStartDate(job.registration_start_date ? job.registration_start_date.split(' ')[0] : '');
+    setNewJobRegEndDate(job.registration_end_date ? job.registration_end_date.split(' ')[0] : '');
+    setNewJobPsyStartDate(job.psytest_start_date ? job.psytest_start_date.split(' ')[0] : '');
+    setNewJobPsyEndDate(job.psytest_end_date ? job.psytest_end_date.split(' ')[0] : '');
+    setNewJobIntStartDate(job.interview_start_date ? job.interview_start_date.split(' ')[0] : '');
+    setNewJobIntEndDate(job.interview_end_date ? job.interview_end_date.split(' ')[0] : '');
+    setNewJobAnnounceDate(job.announcement_date ? job.announcement_date.split(' ')[0] : '');
+    setIsAddJobModalOpen(true);
+  };
+
+  const openDeleteModal = (id) => {
+    setJobToDelete(id);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleDeleteJob = async () => {
+    if (!jobToDelete) return;
+
+    try {
+      const response = await fetch(`http://${window.location.hostname}:8000/api/jobs/${jobToDelete}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      const data = await response.json();
+      if (data.success) {
+        showNotification('success', 'Berhasil!', 'Lowongan telah dihapus.');
+        setIsDeleteModalOpen(false);
+        setJobToDelete(null);
+        fetchJobs();
+      } else {
+        showNotification('error', 'Gagal!', data.message || 'Gagal menghapus lowongan');
+      }
+    } catch (error) {
+      console.error('Error deleting job:', error);
+      showNotification('error', 'Kesalahan', 'Terjadi kesalahan koneksi.');
+    }
   };
 
   const handleCloseModal = () => {
     setIsAddJobModalOpen(false);
   };
 
-  const handleAddJob = () => {
-    console.log('Adding new job:', {
-      newJobTitle,
-      newJobCompany,
-      newJobType,
-      newJobDescription,
-      newJobStartDate,
-      newJobEndDate,
-      newJobTargetAudience,
-      newJobLocation,
-      newJobRegStartDate,
-      newJobRegEndDate,
-      newJobPsyStartDate,
-      newJobPsyEndDate,
-      newJobIntStartDate,
-      newJobIntEndDate,
-      newJobAnnounceDate,
-    });
-    // Here you would typically send this data to your backend
-    handleCloseModal();
+  const handleAddJob = async () => {
+    if (isSubmitting) return;
+
+    const jobData = {
+      title: newJobTitle,
+      company: newJobCompany,
+      type: newJobType,
+      description: newJobDescription,
+      target_audience: newJobTargetAudience,
+      location: newJobLocation,
+      registration_start_date: newJobRegStartDate,
+      registration_end_date: newJobRegEndDate,
+      psytest_start_date: newJobPsyStartDate,
+      psytest_end_date: newJobPsyEndDate,
+      interview_start_date: newJobIntStartDate,
+      interview_end_date: newJobIntEndDate,
+      announcement_date: newJobAnnounceDate,
+    };
+
+    const url = editingJob
+      ? `http://${window.location.hostname}:8000/api/jobs/${editingJob.id}`
+      : `http://${window.location.hostname}:8000/api/jobs`;
+
+    const method = editingJob ? 'PUT' : 'POST';
+
+    try {
+      const response = await fetch(url, {
+        method: method,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify(jobData)
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        showNotification('success', 'Berhasil!', editingJob ? 'Lowongan telah diperbarui.' : 'Lowongan pekerjaan baru telah berhasil ditambahkan.');
+        handleCloseModal();
+        fetchJobs(); // Realtime update
+      } else {
+        showNotification('error', 'Gagal!', data.message || 'Gagal menambahkan lowongan');
+      }
+    } catch (error) {
+      console.error('Error adding job:', error);
+      showNotification('error', 'Koneksi Gagal', 'Terjadi kesalahan saat menghubungi server.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
@@ -96,13 +247,13 @@ const AdminManageJobs = () => {
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Perusahaan
                 </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
                   Tipe
                 </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">
                   Periode Daftar
                 </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
                   Status
                 </th>
                 <th scope="col" className="relative px-6 py-3">
@@ -112,15 +263,74 @@ const AdminManageJobs = () => {
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {/* Placeholder for no jobs */}
-              <tr>
-                <td colSpan="6" className="px-6 py-12 whitespace-nowrap text-sm text-gray-500">
-                  <div className="flex flex-col items-center justify-center">
-                    <Briefcase className="h-12 w-12 text-gray-400 mb-3" />
-                    <p className="text-lg font-medium text-gray-700">Belum ada lowongan dibuat</p>
-                    <p className="text-sm text-gray-500">Silakan buat lowongan baru untuk memulai proses rekrutmen.</p>
-                  </div>
-                </td>
-              </tr>
+              {isLoading ? (
+                <tr>
+                  <td colSpan="6" className="px-6 py-12 text-center text-gray-500">Memuat data...</td>
+                </tr>
+              ) : jobs.length === 0 ? (
+                <tr>
+                  <td colSpan="6" className="px-6 py-12 whitespace-nowrap text-sm text-gray-500">
+                    <div className="flex flex-col items-center justify-center">
+                      <Briefcase className="h-12 w-12 text-gray-400 mb-3" />
+                      <p className="text-lg font-medium text-gray-700">Belum ada lowongan dibuat</p>
+                      <p className="text-sm text-gray-500">Silakan buat lowongan baru untuk memulai proses rekrutmen.</p>
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                jobs.map((j) => (
+                  <tr key={j.id} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-bold text-gray-900">{j.title}</div>
+                      <div className="text-xs text-gray-500">{j.location}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-600">{j.company}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap hidden md:table-cell">
+                      <span className={clsx(
+                        "px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider",
+                        j.type === 'Fulltime' ? 'bg-indigo-100 text-indigo-700' :
+                          j.type === 'Internship' ? 'bg-orange-100 text-orange-700' :
+                            'bg-gray-100 text-gray-700'
+                      )}>
+                        {j.type}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap hidden lg:table-cell">
+                      <div className="text-xs text-gray-600 font-medium">
+                        {j.registration_start_date ? new Date(j.registration_start_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }) : '-'}
+                        {' - '}
+                        {j.registration_end_date ? new Date(j.registration_end_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '-'}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap hidden md:table-cell">
+                      <span className="flex items-center gap-1.5 text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-md w-fit">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                        Aktif
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <div className="flex justify-end gap-2">
+                        <button
+                          onClick={() => handleEditJob(j)}
+                          className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                          title="Edit"
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => openDeleteModal(j.id)}
+                          className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          title="Hapus"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
@@ -128,365 +338,274 @@ const AdminManageJobs = () => {
 
       {isAddJobModalOpen && (
         <div className="fixed inset-0 z-50 flex justify-end">
-          <div className="fixed inset-0 bg-black bg-opacity-50" onClick={handleCloseModal}></div>
-          <div className="relative w-full max-w-md bg-white shadow-lg h-full overflow-y-auto">
-            <div className="flex items-center justify-between p-4 border-b">
-              <div>
-                <h3 className="text-lg font-bold text-gray-900">Tambah Lowongan Baru</h3>
-                <p className="text-sm text-gray-500">Isi detail lowongan dan jadwal seleksi.</p>
-              </div>
-              <button
-                type="button"
-                className="text-gray-400 hover:text-gray-500"
-                onClick={handleCloseModal}
-              >
-                <span className="sr-only">Tutup</span>
-                <X className="w-6 h-6" />
-              </button>
-            </div>
-            <div className="p-4 space-y-6">
-              <div>
-                <h4 className="text-lg font-semibold text-gray-900 flex items-center gap-2 mb-4">
-                  <Briefcase className="w-5 h-5 text-gray-500" />
-                  Detail Pekerjaan
-                </h4>
-              <div className="mb-4">
-                <label htmlFor="job-title" className="block text-sm font-medium text-gray-700">
-                  Posisi / Judul Pekerjaan
-                </label>
-                <input
-                  type="text"
-                  name="job-title"
-                  id="job-title"
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                  placeholder="Contoh: Staff Administrasi"
-                  value={newJobTitle}
-                  onChange={(e) => setNewJobTitle(e.target.value)}
-                />
-              </div>
-              <div className="mb-4">
-                <label htmlFor="job-company" className="block text-sm font-medium text-gray-700">
-                  Nama Perusahaan
-                </label>
-                <input
-                  type="text"
-                  name="job-company"
-                  id="job-company"
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                  placeholder="PT Multiusaha Prioritas Bersama"
-                  value={newJobCompany}
-                  onChange={(e) => setNewJobCompany(e.target.value)}
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4 mb-4">
+          <Transition
+            show={isAddJobModalOpen}
+            enter="transition-opacity duration-300"
+            enterFrom="opacity-0"
+            enterTo="opacity-100"
+            leave="transition-opacity duration-300"
+            leaveFrom="opacity-100"
+            leaveTo="opacity-0"
+          >
+            <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={handleCloseModal}></div>
+          </Transition>
+
+          <Transition
+            show={isAddJobModalOpen}
+            enter="transform transition ease-in-out duration-500"
+            enterFrom="translate-x-full"
+            enterTo="translate-x-0"
+            leave="transform transition ease-in-out duration-500"
+            leaveFrom="translate-x-0"
+            leaveTo="translate-x-full"
+          >
+            <div className="relative w-screen max-w-lg bg-white shadow-2xl h-full flex flex-col">
+              {/* Header */}
+              <div className="flex items-center justify-between px-6 py-5 border-b sticky top-0 bg-white z-10">
                 <div>
-                  <label htmlFor="job-type" className="block text-sm font-medium text-gray-700">
-                    Tipe Pekerjaan
-                  </label>
-                  <Listbox value={newJobType} onChange={setNewJobType}>
-                    {({ open }) => (
-                      <div className="relative mt-1">
-                        <ListboxButton className="relative w-full cursor-default rounded-md border border-gray-300 bg-white py-2 pl-3 pr-10 text-left shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 sm:text-sm">
-                          <span className="block truncate">{newJobType || 'Pilih Tipe Pekerjaan'}</span>
-                          <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
-                            <ChevronsUpDown className="h-5 w-5 text-gray-400" aria-hidden="true" />
-                          </span>
-                        </ListboxButton>
-                        <Transition
-                          show={open}
-                          leave="transition ease-in duration-100"
-                          leaveFrom="opacity-100"
-                          leaveTo="opacity-0"
-                        >
-                          <ListboxOptions className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
-                            {jobTypes.map((type) => (
-                              <ListboxOption
-                                key={type}
-                                className={({ active }) =>
-                                  clsx(
-                                    active ? 'text-white bg-blue-600' : 'text-gray-900',
-                                    'relative cursor-default select-none py-2 pl-3 pr-9'
-                                  )
-                                }
-                                value={type}
-                              >
-                                {({ selected, active }) => (
-                                  <>
-                                    <span className={clsx(selected ? 'font-semibold' : 'font-normal', 'block truncate')}>
-                                      {type}
-                                    </span>
-                                    {selected ? (
-                                      <span
-                                        className={clsx(
-                                          active ? 'text-white' : 'text-blue-600',
-                                          'absolute inset-y-0 right-0 flex items-center pr-4'
-                                        )}
-                                      >
-                                        <Check className="h-5 w-5" aria-hidden="true" />
-                                      </span>
-                                    ) : null}
-                                  </>
-                                )}
-                              </ListboxOption>
-                            ))}
-                          </ListboxOptions>
-                        </Transition>
-                      </div>
-                    )}
-                  </Listbox>
+                  <h3 className="text-xl font-black text-gray-900 tracking-tight">
+                    {editingJob ? 'Edit Lowongan' : 'Tambah Lowongan Baru'}
+                  </h3>
+                  <p className="text-xs font-medium text-gray-500 mt-0.5">
+                    {editingJob ? 'Perbarui informasi pekerjaan ini.' : 'Lengkapi informasi pekerjaan dengan detail.'}
+                  </p>
                 </div>
-                <div>
-                  <label htmlFor="target-audience" className="block text-sm font-medium text-gray-700">
-                    Target Peserta
-                  </label>
-                  <Listbox value={newJobTargetAudience} onChange={setNewJobTargetAudience}>
-                    {({ open }) => (
-                      <div className="relative mt-1">
-                        <ListboxButton className="relative w-full cursor-default rounded-md border border-gray-300 bg-white py-2 pl-3 pr-10 text-left shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 sm:text-sm">
-                          <span className="block truncate">{newJobTargetAudience}</span>
-                          <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
-                            <ChevronsUpDown className="h-5 w-5 text-gray-400" aria-hidden="true" />
-                          </span>
-                        </ListboxButton>
-                        <Transition
-                          show={open}
-                          leave="transition ease-in duration-100"
-                          leaveFrom="opacity-100"
-                          leaveTo="opacity-0"
-                        >
-                          <ListboxOptions className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
-                            {targetAudiences.map((audience) => (
-                              <ListboxOption
-                                key={audience}
-                                className={({ active }) =>
-                                  clsx(
-                                    active ? 'text-white bg-blue-600' : 'text-gray-900',
-                                    'relative cursor-default select-none py-2 pl-3 pr-9'
-                                  )
-                                }
-                                value={audience}
-                              >
-                                {({ selected, active }) => (
-                                  <>
-                                    <span className={clsx(selected ? 'font-semibold' : 'font-normal', 'block truncate')}>
-                                      {audience}
-                                    </span>
-                                    {selected ? (
-                                      <span
-                                        className={clsx(
-                                          active ? 'text-white' : 'text-blue-600',
-                                          'absolute inset-y-0 right-0 flex items-center pr-4'
-                                        )}
-                                      >
-                                        <Check className="h-5 w-5" aria-hidden="true" />
-                                      </span>
-                                    ) : null}
-                                  </>
-                                )}
-                              </ListboxOption>
-                            ))}
-                          </ListboxOptions>
-                        </Transition>
-                      </div>
-                    )}
-                  </Listbox>
-                </div>
+                <button
+                  type="button"
+                  className="p-2 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-full transition-all"
+                  onClick={handleCloseModal}
+                >
+                  <X className="w-5 h-5" />
+                </button>
               </div>
-              <div className="mb-4">
-                <label htmlFor="job-location" className="block text-sm font-medium text-gray-700">
-                  Lokasi Penempatan
-                </label>
-                <div className="relative mt-1 rounded-md shadow-sm">
-                  <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                    <MapPin className="h-5 w-5 text-gray-400" aria-hidden="true" />
-                  </div>
-                  <input
-                    type="text"
-                    name="job-location"
-                    id="job-location"
-                    className="block w-full rounded-md border-gray-300 pl-10 focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                    placeholder="Bekasi"
-                    value={newJobLocation}
-                    onChange={(e) => setNewJobLocation(e.target.value)}
-                  />
-                </div>
-              </div>
-              <div className="mb-4">
-                <label htmlFor="job-description" className="block text-sm font-medium text-gray-700">
-                  Deskripsi Pekerjaan
-                </label>
-                <textarea
-                  name="job-description"
-                  id="job-description"
-                  rows="5"
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                  placeholder="Jelaskan tanggung jawab dan kualifikasi..."
-                  value={newJobDescription}
-                  onChange={(e) => setNewJobDescription(e.target.value)}
-                ></textarea>
-              </div>
-            </div>
-              <div>
-                <h4 className="text-lg font-semibold text-gray-900 mb-4">Jadwal Seleksi</h4>
-                <div className="space-y-4">
-                  {/* Registrasi & Administrasi */}
-                  <div className="p-4 border border-gray-200 rounded-md">
-                    <div className="flex items-center gap-2 mb-3">
-                      <span className="flex items-center justify-center w-6 h-6 rounded-full bg-blue-100 text-blue-800 text-sm font-semibold">
-                        1
-                      </span>
-                      <h5 className="font-medium text-gray-900">Registrasi & Administrasi</h5>
+
+              {/* Content */}
+              <div className="flex-1 overflow-y-auto px-6 py-6 space-y-8 scrollbar-thin scrollbar-thumb-gray-200">
+                {/* Section 1: Detail Pekerjaan */}
+                <section className="space-y-5">
+                  <div className="flex items-center gap-2 border-b border-gray-100 pb-2">
+                    <div className="p-1.5 bg-blue-50 rounded-lg">
+                      <Briefcase className="w-4 h-4 text-blue-600" />
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label htmlFor="reg-start-date" className="block text-sm font-medium text-gray-700">
-                          Mulai
-                        </label>
-                        <input
-                          type="date"
-                          name="reg-start-date"
-                          id="reg-start-date"
-                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                          value={newJobRegStartDate}
-                          onChange={(e) => setNewJobRegStartDate(e.target.value)}
-                        />
-                      </div>
-                      <div>
-                        <label htmlFor="reg-end-date" className="block text-sm font-medium text-gray-700">
-                          Selesai
-                        </label>
-                        <input
-                          type="date"
-                          name="reg-end-date"
-                          id="reg-end-date"
-                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                          value={newJobRegEndDate}
-                          onChange={(e) => setNewJobRegEndDate(e.target.value)}
-                        />
-                      </div>
-                    </div>
+                    <h4 className="text-md font-black text-gray-900 tracking-wide uppercase">Detail Pekerjaan</h4>
                   </div>
 
-                  {/* Tes Psikotes */}
-                  <div className="p-4 border border-gray-200 rounded-md">
-                    <div className="flex items-center gap-2 mb-3">
-                      <span className="flex items-center justify-center w-6 h-6 rounded-full bg-blue-100 text-blue-800 text-sm font-semibold">
-                        2
-                      </span>
-                      <h5 className="font-medium text-gray-900">Tes Psikotes</h5>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label htmlFor="psy-start-date" className="block text-sm font-medium text-gray-700">
-                          Mulai
-                        </label>
-                        <input
-                          type="date"
-                          name="psy-start-date"
-                          id="psy-start-date"
-                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                          value={newJobPsyStartDate}
-                          onChange={(e) => setNewJobPsyStartDate(e.target.value)}
-                        />
-                      </div>
-                      <div>
-                        <label htmlFor="psy-end-date" className="block text-sm font-medium text-gray-700">
-                          Selesai
-                        </label>
-                        <input
-                          type="date"
-                          name="psy-end-date"
-                          id="psy-end-date"
-                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                          value={newJobPsyEndDate}
-                          onChange={(e) => setNewJobPsyEndDate(e.target.value)}
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Interview User & HR */}
-                  <div className="p-4 border border-gray-200 rounded-md">
-                    <div className="flex items-center gap-2 mb-3">
-                      <span className="flex items-center justify-center w-6 h-6 rounded-full bg-blue-100 text-blue-800 text-sm font-semibold">
-                        3
-                      </span>
-                      <h5 className="font-medium text-gray-900">Interview User & HR</h5>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label htmlFor="int-start-date" className="block text-sm font-medium text-gray-700">
-                          Mulai
-                        </label>
-                        <input
-                          type="date"
-                          name="int-start-date"
-                          id="int-start-date"
-                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                          value={newJobIntStartDate}
-                          onChange={(e) => setNewJobIntStartDate(e.target.value)}
-                        />
-                      </div>
-                      <div>
-                        <label htmlFor="int-end-date" className="block text-sm font-medium text-gray-700">
-                          Selesai
-                        </label>
-                        <input
-                          type="date"
-                          name="int-end-date"
-                          id="int-end-date"
-                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                          value={newJobIntEndDate}
-                          onChange={(e) => setNewJobIntEndDate(e.target.value)}
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Pengumuman Hasil Akhir */}
-                  <div className="p-4 border border-gray-200 rounded-md">
-                    <div className="flex items-center gap-2 mb-3">
-                      <span className="flex items-center justify-center w-6 h-6 rounded-full bg-blue-100 text-blue-800 text-sm font-semibold">
-                        4
-                      </span>
-                      <h5 className="font-medium text-gray-900">Pengumuman Hasil Akhir</h5>
-                    </div>
-                    <div>
-                      <label htmlFor="announce-date" className="block text-sm font-medium text-gray-700">
-                        Tanggal Pengumuman
-                      </label>
+                  <div className="grid gap-5">
+                    <FormGroup label="Posisi / Judul Pekerjaan" icon={Briefcase} hint="Gunakan judul yang spesifik (mis: Senior Backend Engineer)">
                       <input
-                        type="date"
-                        name="announce-date"
-                        id="announce-date"
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                        value={newJobAnnounceDate}
-                        onChange={(e) => setNewJobAnnounceDate(e.target.value)}
+                        type="text"
+                        className="block w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all outline-none"
+                        placeholder="Contoh: Staff Administrasi"
+                        value={newJobTitle}
+                        onChange={(e) => setNewJobTitle(e.target.value)}
                       />
+                    </FormGroup>
+
+                    <FormGroup label="Nama Perusahaan" icon={Building2}>
+                      <input
+                        type="text"
+                        className="block w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all outline-none"
+                        placeholder="PT Multiusaha Prioritas Bersama"
+                        value={newJobCompany}
+                        onChange={(e) => setNewJobCompany(e.target.value)}
+                      />
+                    </FormGroup>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <FormGroup label="Tipe Pekerjaan">
+                        <Listbox value={newJobType} onChange={setNewJobType}>
+                          <div className="relative">
+                            <ListboxButton className="relative w-full cursor-pointer rounded-xl border border-gray-200 bg-white py-2.5 pl-4 pr-10 text-left text-sm focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all outline-none">
+                              <span className="block truncate font-medium">{newJobType || 'Pilih Tipe'}</span>
+                              <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                                <ChevronsUpDown className="h-4 w-4 text-gray-400" />
+                              </span>
+                            </ListboxButton>
+                            <Transition leave="transition ease-in duration-100" leaveFrom="opacity-100" leaveTo="opacity-0">
+                              <ListboxOptions className="absolute z-20 mt-1 max-h-60 w-full overflow-auto rounded-xl bg-white py-1 shadow-2xl ring-1 ring-black ring-opacity-5 focus:outline-none text-sm">
+                                {jobTypes.map((type) => (
+                                  <ListboxOption
+                                    key={type}
+                                    className={({ active }) => clsx(active ? 'bg-blue-50 text-blue-700' : 'text-gray-900', 'relative cursor-pointer select-none py-2.5 pl-4 pr-9')}
+                                    value={type}
+                                  >
+                                    {({ selected }) => (
+                                      <>
+                                        <span className={clsx(selected ? 'font-bold' : 'font-normal', 'block truncate')}>{type}</span>
+                                        {selected && (
+                                          <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-blue-600">
+                                            <Check className="h-4 w-4" />
+                                          </span>
+                                        )}
+                                      </>
+                                    )}
+                                  </ListboxOption>
+                                ))}
+                              </ListboxOptions>
+                            </Transition>
+                          </div>
+                        </Listbox>
+                      </FormGroup>
+
+                      <FormGroup label="Target Peserta">
+                        <Listbox value={newJobTargetAudience} onChange={setNewJobTargetAudience}>
+                          <div className="relative">
+                            <ListboxButton className="relative w-full cursor-pointer rounded-xl border border-gray-200 bg-white py-2.5 pl-4 pr-10 text-left text-sm focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all outline-none">
+                              <span className="block truncate font-medium">{newJobTargetAudience}</span>
+                              <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                                <ChevronsUpDown className="h-4 w-4 text-gray-400" />
+                              </span>
+                            </ListboxButton>
+                            <Transition leave="transition ease-in duration-100" leaveFrom="opacity-100" leaveTo="opacity-0">
+                              <ListboxOptions className="absolute z-20 mt-1 max-h-60 w-full overflow-auto rounded-xl bg-white py-1 shadow-2xl ring-1 ring-black ring-opacity-5 focus:outline-none text-sm">
+                                {targetAudiences.map((audience) => (
+                                  <ListboxOption
+                                    key={audience}
+                                    className={({ active }) => clsx(active ? 'bg-blue-50 text-blue-700' : 'text-gray-900', 'relative cursor-pointer select-none py-2.5 pl-4 pr-9')}
+                                    value={audience}
+                                  >
+                                    {({ selected }) => (
+                                      <>
+                                        <span className={clsx(selected ? 'font-bold' : 'font-normal', 'block truncate')}>{audience}</span>
+                                        {selected && (
+                                          <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-blue-600">
+                                            <Check className="h-4 w-4" />
+                                          </span>
+                                        )}
+                                      </>
+                                    )}
+                                  </ListboxOption>
+                                ))}
+                              </ListboxOptions>
+                            </Transition>
+                          </div>
+                        </Listbox>
+                      </FormGroup>
+                    </div>
+
+                    <FormGroup label="Lokasi Penempatan" icon={MapPin}>
+                      <div className="relative">
+                        <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
+                          <MapPin className="h-4 w-4 text-gray-400" />
+                        </div>
+                        <input
+                          type="text"
+                          className="block w-full pl-11 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all outline-none"
+                          placeholder="Contoh: Bekasi, Jawa Barat"
+                          value={newJobLocation}
+                          onChange={(e) => setNewJobLocation(e.target.value)}
+                        />
+                      </div>
+                    </FormGroup>
+
+                    <FormGroup label="Deskripsi Pekerjaan" icon={FileText}>
+                      <textarea
+                        rows="6"
+                        className="block w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all outline-none resize-none"
+                        placeholder="Jelaskan kualifikasi, tanggung jawab, dan Benefit yang ditawarkan..."
+                        value={newJobDescription}
+                        onChange={(e) => setNewJobDescription(e.target.value)}
+                      ></textarea>
+                    </FormGroup>
+                  </div>
+                </section>
+
+                {/* Section 2: Jadwal Seleksi */}
+                <section className="space-y-6">
+                  <div className="flex items-center gap-2 border-b border-gray-100 pb-2">
+                    <div className="p-1.5 bg-emerald-50 rounded-lg">
+                      <Calendar className="w-4 h-4 text-emerald-600" />
+                    </div>
+                    <h4 className="text-md font-black text-gray-900 tracking-wide uppercase">Jadwal Seleksi</h4>
+                  </div>
+
+                  <div className="space-y-4">
+                    <DateRangeInput
+                      label="1. Registrasi & Administrasi"
+                      icon={Users}
+                      startValue={newJobRegStartDate}
+                      onStartChange={setNewJobRegStartDate}
+                      endValue={newJobRegEndDate}
+                      onEndChange={setNewJobRegEndDate}
+                    />
+                    <DateRangeInput
+                      label="2. Tes Psikotes"
+                      icon={FileText}
+                      startValue={newJobPsyStartDate}
+                      onStartChange={setNewJobPsyStartDate}
+                      endValue={newJobPsyEndDate}
+                      onEndChange={setNewJobPsyEndDate}
+                    />
+                    <DateRangeInput
+                      label="3. Interview User & HR"
+                      icon={Users}
+                      startValue={newJobIntStartDate}
+                      onStartChange={setNewJobIntStartDate}
+                      endValue={newJobIntEndDate}
+                      onEndChange={setNewJobIntEndDate}
+                    />
+
+                    <div className="bg-emerald-50/30 p-4 rounded-xl border border-emerald-100 space-y-3">
+                      <div className="flex items-center gap-2 text-sm font-bold text-emerald-800">
+                        <Send className="w-4 h-4 text-emerald-600" />
+                        4. Pengumuman Hasil Akhir
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[10px] uppercase tracking-wider font-bold text-gray-400">Tanggal Pengumuman</label>
+                        <input
+                          type="date"
+                          className="block w-full px-3 py-2 border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all bg-white"
+                          value={newJobAnnounceDate}
+                          onChange={(e) => setNewJobAnnounceDate(e.target.value)}
+                        />
+                      </div>
                     </div>
                   </div>
-                </div>
+                </section>
+              </div>
+
+              {/* Footer */}
+              <div className="px-6 py-5 border-t bg-gray-50/50 flex items-center justify-end gap-3 sticky bottom-0">
+                <button
+                  type="button"
+                  className="px-5 py-2.5 text-sm font-bold text-gray-600 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 focus:ring-4 focus:ring-gray-100 transition-all shadow-sm"
+                  onClick={handleCloseModal}
+                >
+                  Batal
+                </button>
+                <button
+                  type="button"
+                  className={clsx(
+                    "px-6 py-2.5 text-sm font-bold text-white rounded-xl transition-all shadow-lg flex items-center gap-2",
+                    isSubmitting ? "bg-blue-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700 shadow-blue-500/20"
+                  )}
+                  onClick={handleAddJob}
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Menyimpan...
+                    </>
+                  ) : (
+                    'Simpan Lowongan'
+                  )}
+                </button>
               </div>
             </div>
-            <div className="flex justify-end p-4 border-t bg-gray-50">
-              <button
-                type="button"
-                className="inline-flex justify-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                onClick={handleCloseModal}
-              >
-                Batal
-              </button>
-              <button
-                type="button"
-                className="ml-3 inline-flex justify-center px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                onClick={handleAddJob}
-              >
-                Tambah Lowongan
-              </button>
-            </div>
-          </div>
+          </Transition>
         </div>
       )}
+
+      <ConfirmationModal
+        isOpen={isDeleteModalOpen}
+        title="Hapus Lowongan?"
+        message="Tindakan ini tidak dapat dibatalkan. Lowongan yang dihapus akan hilang dari sistem secara permanen."
+        onConfirm={handleDeleteJob}
+        onCancel={() => setIsDeleteModalOpen(false)}
+        confirmText="Hapus Sekarang"
+        cancelText="Batal"
+      />
     </div>
   );
 };

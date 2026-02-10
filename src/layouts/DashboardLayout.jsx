@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import { 
+import { useAuth } from '../hooks/useAuth';
+import {
   LayoutDashboard,
   Briefcase,
   Users,
@@ -22,10 +22,18 @@ const DashboardLayout = () => {
   const { user, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
-  
+
   // Sidebar state
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
+
+  // Lock body scroll
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = 'auto';
+    };
+  }, []);
 
   // Handle window resize
   useEffect(() => {
@@ -63,10 +71,12 @@ const DashboardLayout = () => {
     { name: 'Data Diri', href: '/dashboard/user/profile', icon: UserCircle },
     { name: 'Dokumen', href: '/dashboard/user/documents', icon: FileText },
     { name: 'Lamaran Saya', href: '/dashboard/user/applications', icon: ClipboardList },
+    { name: 'Psikotes', href: '/dashboard/user/psychotest', icon: UserCheck },
     { name: 'Notifikasi', href: '/dashboard/user/notifications', icon: Bell },
+    { name: 'Pengaturan', href: '/dashboard/user/settings', icon: Settings },
   ];
 
-  const currentNavigation = user?.role === 'HR' ? adminNavigation : userNavigation;
+  const currentNavigation = user?.role === 'ADMIN' ? adminNavigation : userNavigation;
 
   const handleLogout = () => {
     logout();
@@ -82,7 +92,7 @@ const DashboardLayout = () => {
   return (
     <div className="flex h-screen bg-gray-50 overflow-hidden">
       {/* Sidebar - Desktop & Mobile merged logic */}
-      <aside 
+      <aside
         className={clsx(
           "bg-white border-r z-30 transition-all duration-300 ease-in-out flex flex-col",
           // Mobile: Fixed position, off-canvas
@@ -94,9 +104,15 @@ const DashboardLayout = () => {
         )}
       >
         {/* Sidebar Header */}
-        <div className="h-16 flex items-center justify-center border-b px-6">
-          <Link to="/" className="text-2xl font-bold text-blue-600">
-            KARIR<span className="text-xs text-gray-500 font-normal ml-1">{user?.role === 'HR' ? 'Admin' : 'User'}</span>
+        <div className={clsx("h-16 flex items-center border-b", isSidebarOpen ? "px-6 justify-start" : "justify-center")}>
+          <Link to="/" className="flex items-center justify-center h-full">
+            {isSidebarOpen ? (
+              <span className="text-2xl font-bold text-blue-600">
+                KARIR<span className={clsx("text-xs text-gray-500 font-normal ml-1 transition-all duration-300", !isSidebarOpen && "opacity-0 w-0")}>{user?.role === 'ADMIN' ? 'Admin' : 'User'}</span>
+              </span>
+            ) : (
+              <Briefcase className="w-6 h-6 text-blue-600" />
+            )}
           </Link>
         </div>
 
@@ -110,8 +126,8 @@ const DashboardLayout = () => {
                 to={item.href}
                 className={clsx(
                   "flex items-center gap-3 px-3 py-3 rounded-lg transition-all duration-200 group relative",
-                  isActive 
-                    ? "bg-blue-50 text-blue-600" 
+                  isActive
+                    ? "bg-blue-50 text-blue-600"
                     : "text-gray-600 hover:bg-gray-50 hover:text-gray-900",
                   !isSidebarOpen && !isMobile && "justify-center"
                 )}
@@ -120,7 +136,7 @@ const DashboardLayout = () => {
                 }}
               >
                 <item.icon className={clsx("w-5 h-5 flex-shrink-0", isActive && "text-blue-600")} />
-                
+
                 <span className={clsx(
                   "font-medium whitespace-nowrap transition-all duration-300",
                   (!isSidebarOpen && !isMobile) ? "w-0 opacity-0 overflow-hidden" : "w-auto opacity-100"
@@ -141,22 +157,6 @@ const DashboardLayout = () => {
 
         {/* Sidebar Footer */}
         <div className="p-4 border-t mt-auto">
-          {/* User Profile Snippet */}
-          <div className={clsx(
-            "flex items-center gap-3 mb-4 transition-all duration-300",
-            (!isSidebarOpen && !isMobile) ? "justify-center" : ""
-          )}>
-            <div className="w-9 h-9 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-sm flex-shrink-0">
-              {user?.name?.charAt(0) || 'U'}
-            </div>
-            <div className={clsx(
-              "overflow-hidden transition-all duration-300",
-              (!isSidebarOpen && !isMobile) ? "w-0 opacity-0" : "w-auto opacity-100"
-            )}>
-              <p className="text-base font-semibold text-gray-900 truncate">{user?.name}</p>
-              <p className="text-xs text-gray-500 truncate uppercase">{user?.role}</p>
-            </div>
-          </div>
 
           <button
             onClick={handleLogout}
@@ -178,7 +178,7 @@ const DashboardLayout = () => {
 
       {/* Mobile Overlay */}
       {isMobile && isSidebarOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/50 z-20"
           onClick={() => setIsSidebarOpen(false)}
         />
@@ -195,25 +195,24 @@ const DashboardLayout = () => {
             >
               {isSidebarOpen ? <ChevronLeft className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
             </button>
-            
+
             <div className="flex items-center gap-2 text-gray-800">
               <span className="text-lg font-semibold">{getCurrentPageName()}</span>
             </div>
           </div>
 
           <div className="flex items-center gap-4">
-            <button className="p-2 text-gray-500 hover:bg-gray-100 rounded-full relative">
-              <Bell className="w-5 h-5" />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
-            </button>
-            <div className="h-8 w-px bg-gray-200 hidden sm:block"></div>
             <div className="flex items-center gap-2">
               <span className="text-sm font-medium hidden sm:block text-gray-700">
                 {user?.name}
               </span>
-              <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-xs ring-2 ring-white shadow-sm">
-                {user?.name?.charAt(0) || 'U'}
-              </div>
+              {user?.photo ? (
+                <img src={`http://${window.location.hostname}:8000${user.photo}`} alt="Profile" className="w-8 h-8 rounded-full object-cover ring-2 ring-white shadow-sm" />
+              ) : (
+                <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-xs ring-2 ring-white shadow-sm">
+                  {user?.name?.charAt(0) || 'U'}
+                </div>
+              )}
             </div>
           </div>
         </header>

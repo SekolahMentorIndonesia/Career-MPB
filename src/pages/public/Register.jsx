@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { User, Mail, Lock, Loader2, Eye, EyeOff } from 'lucide-react';
+import { User, Mail, Lock, Loader2, Eye, EyeOff, Phone } from 'lucide-react';
+import { useAuth } from '../../hooks/useAuth';
 import GoogleIcon from '../../assets/google-icon.svg'; // Assuming you have these icons in assets
 import FacebookIcon from '../../assets/facebook-icon.svg';
 import AppleIcon from '../../assets/apple-icon.svg';
@@ -8,10 +9,12 @@ import AppleIcon from '../../assets/apple-icon.svg';
 const Register = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const { register } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -19,17 +22,12 @@ const Register = () => {
     setError('');
     setIsSubmitting(true);
 
-    // Mock registration logic
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000)); 
-      console.log('Registering with:', { name, email, password });
-      // In a real app, you'd send this to your backend
-      
-      // If successful, redirect to login
-      navigate('/login');
-    } catch {
-            setError('Registration failed. Please try again.');
+      const data = await register(name, email, phone, password);
+      // On success, redirect to verify email page with email in query param
+      navigate(`/verify-email?email=${encodeURIComponent(email)}`);
+    } catch (err) {
+      setError(err.message || 'Registration failed. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -40,13 +38,8 @@ const Register = () => {
       <div className="max-w-md w-full bg-white rounded-xl shadow-lg p-8 space-y-6 border border-gray-200">
         {/* Top Icon */}
         <div className="flex justify-center mb-6">
-          <div className="w-16 h-16 bg-gray-800 rounded-xl flex items-center justify-center shadow-md">
-            <div className="grid grid-cols-2 gap-1 p-1">
-              <span className="w-3 h-3 bg-gray-400 rounded-sm"></span>
-              <span className="w-3 h-3 bg-gray-400 rounded-sm"></span>
-              <span className="w-3 h-3 bg-gray-400 rounded-sm"></span>
-              <span className="w-3 h-3 bg-gray-400 rounded-sm"></span>
-            </div>
+          <div className="w-16 h-16 bg-[#0F172A] rounded-xl flex items-center justify-center shadow-md overflow-hidden">
+            <img src="/logo.webp" alt="Logo" className="w-full h-full object-contain p-2" />
           </div>
         </div>
 
@@ -58,14 +51,14 @@ const Register = () => {
             Please sign up to create your account
           </p>
         </div>
-        
+
         <form className="space-y-4" onSubmit={handleSubmit}>
           {error && (
             <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm text-center border border-red-200">
               {error}
             </div>
           )}
-          
+
           <div>
             <label htmlFor="full-name" className="sr-only">Full Name</label>
             <div className="relative">
@@ -105,7 +98,27 @@ const Register = () => {
               />
             </div>
           </div>
-          
+
+          <div>
+            <label htmlFor="phone" className="sr-only">Phone Number</label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Phone className="h-5 w-5 text-gray-400" />
+              </div>
+              <input
+                id="phone"
+                name="phone"
+                type="tel"
+                autoComplete="tel"
+                required
+                className="appearance-none block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                placeholder="Phone Number (e.g. 08123456789)"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value.replace(/[^0-9]/g, ''))}
+              />
+            </div>
+          </div>
+
           <div>
             <label htmlFor="password" className="sr-only">Password</label>
             <div className="relative">

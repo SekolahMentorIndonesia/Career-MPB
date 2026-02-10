@@ -15,30 +15,30 @@ const Home = () => {
               <div className="inline-flex items-center px-4 py-1.5 rounded-full bg-blue-50 text-blue-700 text-xs font-bold tracking-wide uppercase mb-8">
                 Karir
               </div>
-              
+
               <h1 className="text-4xl tracking-tight font-extrabold text-gray-900 sm:text-5xl md:text-6xl lg:leading-tight mb-6">
                 Bergabung <br />
                 Bersama Kami
               </h1>
-              
+
               <p className="mt-4 text-lg text-gray-600 leading-relaxed font-medium">
                 Jadilah bagian dari tim yang inovatif dan dinamis. Kami mencari talenta terbaik untuk tumbuh dan menciptakan dampak nyata bersama.
               </p>
-              
+
               <p className="mt-4 text-base text-gray-500 leading-relaxed mb-8">
                 Bangun karier profesionalmu di lingkungan yang kolaboratif, teknologis, dan penuh peluang berkembang.
               </p>
-              
+
               <div className="mt-8 sm:max-w-lg sm:mx-auto sm:text-center lg:text-left lg:mx-0">
-                <Link 
-                  to="/jobs" 
+                <Link
+                  to="/#karir-section"
                   className="inline-flex items-center px-8 py-3.5 border border-transparent text-base font-bold rounded-lg text-white bg-blue-600 hover:bg-blue-700 md:text-lg transition-all shadow-lg hover:shadow-blue-500/30"
                 >
                   Lihat Posisi Tersedia <ArrowRight className="ml-2 w-5 h-5" />
                 </Link>
               </div>
             </div>
-            
+
             {/* Image/Illustration */}
             <div className="mt-12 relative sm:max-w-lg sm:mx-auto lg:mt-0 lg:max-w-none lg:mx-0 lg:col-span-6 lg:flex lg:items-center">
               <div className="relative mx-auto w-full rounded-lg lg:max-w-md">
@@ -53,13 +53,13 @@ const Home = () => {
             </div>
           </div>
         </div>
-        
+
         {/* Decorative Background Elements */}
         <div className="absolute top-0 right-0 -translate-y-12 translate-x-12 blur-3xl opacity-20 pointer-events-none">
-           <div className="w-96 h-96 bg-blue-400 rounded-full"></div>
+          <div className="w-96 h-96 bg-blue-400 rounded-full"></div>
         </div>
         <div className="absolute bottom-0 left-0 translate-y-12 -translate-x-12 blur-3xl opacity-20 pointer-events-none">
-           <div className="w-96 h-96 bg-indigo-400 rounded-full"></div>
+          <div className="w-96 h-96 bg-indigo-400 rounded-full"></div>
         </div>
       </section>
 
@@ -104,23 +104,23 @@ const Home = () => {
         <div className="bg-[#0F172A] rounded-3xl p-8 md:p-12 text-white flex flex-col lg:flex-row items-center gap-12 relative overflow-hidden shadow-2xl">
           {/* Background Glow Effect */}
           <div className="absolute top-0 right-0 w-96 h-96 bg-blue-600/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
-          
+
           <div className="flex-1 relative z-10">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-white/10 rounded-full text-xs font-semibold tracking-wide uppercase mb-6 text-blue-100 border border-white/10">
               <span className="mr-1">🎓</span>
               Students & Graduates
             </div>
-            
+
             <h2 className="text-3xl md:text-4xl font-bold mb-6 text-white leading-tight">
               Program Magang & PKL
             </h2>
-            
+
             <p className="text-gray-400 text-lg leading-relaxed mb-8 max-w-xl">
               Kami tidak hanya mencari profesional berpengalaman. Kami juga membuka pintu bagi siswa SMK dan mahasiswa yang ingin belajar, berkembang, dan mendapatkan pengalaman dunia kerja yang sesungguhnya.
             </p>
-            
-            <Link 
-              to="/jobs" 
+
+            <Link
+              to="/#karir-section"
               className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-all hover:shadow-lg hover:shadow-blue-500/25"
             >
               Kirim Lamaran <ArrowRight className="w-5 h-5" />

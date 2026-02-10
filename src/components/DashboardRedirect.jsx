@@ -1,6 +1,6 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../hooks/useAuth';
 
 const DashboardRedirect = () => {
   const { user, loading } = useAuth();
@@ -9,11 +9,11 @@ const DashboardRedirect = () => {
     return <div>Loading...</div>; // Or a more sophisticated loading spinner
   }
 
-  if (user && user.role === 'HR') {
+  if (user && user.role === 'ADMIN') {
     return <Navigate to="/dashboard/admin" replace />;
   }
 
-  if (user && user.role === 'CANDIDATE') {
+  if (user && user.role === 'USER') {
     return <Navigate to="/dashboard/user" replace />;
   }
 

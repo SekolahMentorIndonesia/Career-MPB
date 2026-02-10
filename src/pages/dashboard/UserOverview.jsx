@@ -1,96 +1,124 @@
-import React from 'react';
-import { CheckCircle, XCircle, Clock, User, FileText } from 'lucide-react';
-import checkDataCompleteness from '../../utils/dataCompletenessChecker';
+import React, { useState, useEffect } from 'react';
+import { CheckCircle, User, FileText, Briefcase, Circle, Loader2 } from 'lucide-react';
 
 const UserOverview = () => {
-  // Mock data for profileData and documentData
-  // In a real application, this data would come from a global state, context, or API calls
-  const mockProfileData = {
-    name: 'John Doe',
-    email: 'john.doe@example.com',
-    phone: '+62 812 3456 7890',
-    domicile: 'Jakarta',
-    address: 'Jl. Contoh No. 123',
-    ktpAddress: 'Jl. KTP No. 456',
-    nik: '1234567890123456',
-    lastEducation: 'S1 Teknik Informatika',
-    gpa: '3.8',
-    major: 'Teknik Informatika',
-    religion: 'Islam',
-    height: '170',
-    weight: '60',
-    skills: 'React, Node.js, JavaScript',
-  };
+  const [summaryData, setSummaryData] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const mockDocumentData = {
-    cvFile: true, // Assuming file is uploaded
-    pasFotoFile: true, // Assuming file is uploaded
-    ktpFile: true, // Assuming file is uploaded
-    // portofolioFile: true, // Optional
-    // sertifikatFile: true, // Optional
-    // paklaringFile: true, // Optional
-  };
+  useEffect(() => {
+    const fetchSummary = async () => {
+      try {
+        const response = await fetch(`http://${window.location.hostname}:8000/api/user/dashboard-summary`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+        const result = await response.json();
+        if (result.success) {
+          setSummaryData(result.data);
+        }
+      } catch (error) {
+        console.error('Error fetching dashboard summary:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-  // Use checkDataCompleteness to determine the status
-  const { isProfileComplete, isDocumentUploaded } = checkDataCompleteness(mockProfileData, mockDocumentData);
+    fetchSummary();
+  }, []);
 
-  const hasApplied = false;
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="w-10 h-10 animate-spin text-blue-600" />
+      </div>
+    );
+  }
 
-  // In a real application, these states would be determined by actual data from backend or context
-  // For now, they are hardcoded for demonstration purposes.
-  // You would fetch user profile data, document upload status, and application status
-  // and update these states accordingly.
+  const { profile_percentage, is_profile_complete, is_document_uploaded, has_applied } = summaryData || {};
 
   return (
     <div className="p-6">
       <h1 className="text-3xl font-bold text-gray-900 mb-6">Overview Pengguna</h1>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
         {/* Card Status Profil */}
-        <div className="bg-white rounded-lg shadow-md p-6 flex items-center justify-between">
+        <div className="bg-white rounded-lg shadow-md p-6 flex items-center justify-between border-b-4 border-blue-500">
           <div>
             <p className="text-sm font-medium text-gray-500">Status Profil</p>
-            <p className="text-2xl font-semibold text-gray-900">{isProfileComplete ? 'Lengkap' : 'Belum Lengkap'}</p>
+            <p className={`text-2xl font-bold ${is_profile_complete ? 'text-green-600' : 'text-orange-500'}`}>
+              {profile_percentage}% {is_profile_complete ? 'Sudah Lengkap' : 'Belum Lengkap'}
+            </p>
           </div>
-          {isProfileComplete ? <CheckCircle className="w-8 h-8 text-green-500" /> : <XCircle className="w-8 h-8 text-red-500" />}
+          <User className={`w-8 h-8 ${is_profile_complete ? 'text-green-500' : 'text-orange-500'}`} />
         </div>
 
         {/* Card Status Dokumen */}
-        <div className="bg-white rounded-lg shadow-md p-6 flex items-center justify-between">
+        <div className="bg-white rounded-lg shadow-md p-6 flex items-center justify-between border-b-4 border-indigo-500">
           <div>
             <p className="text-sm font-medium text-gray-500">Status Dokumen</p>
-            <p className="text-2xl font-semibold text-gray-900">{isDocumentUploaded ? 'Sudah Diunggah' : 'Belum Diunggah'}</p>
+            <p className={`text-2xl font-bold ${is_document_uploaded ? 'text-green-600' : 'text-red-500'}`}>
+              {is_document_uploaded ? 'Sudah Lengkap' : 'Belum Lengkap'}
+            </p>
           </div>
-          {isDocumentUploaded ? <CheckCircle className="w-8 h-8 text-green-500" /> : <XCircle className="w-8 h-8 text-red-500" />}
+          <FileText className={`w-8 h-8 ${is_document_uploaded ? 'text-green-500' : 'text-red-500'}`} />
         </div>
 
         {/* Card Status Lamaran */}
-        <div className="bg-white rounded-lg shadow-md p-6 flex items-center justify-between">
+        <div className="bg-white rounded-lg shadow-md p-6 flex items-center justify-between border-b-4 border-purple-500">
           <div>
             <p className="text-sm font-medium text-gray-500">Status Lamaran</p>
-            <p className="text-2xl font-semibold text-gray-900">{hasApplied ? 'Sudah Melamar' : 'Belum Melamar'}</p>
+            <p className={`text-2xl font-bold ${has_applied ? 'text-green-600' : 'text-gray-400'}`}>
+              {has_applied ? 'Sudah Melamar' : 'Belum Melamar'}
+            </p>
           </div>
-          {hasApplied ? <CheckCircle className="w-8 h-8 text-green-500" /> : <XCircle className="w-8 h-8 text-red-500" />}
+          <Briefcase className={`w-8 h-8 ${has_applied ? 'text-green-500' : 'text-gray-400'}`} />
         </div>
       </div>
 
-      {/* Checklist Onboarding */}
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">Checklist Onboarding</h2>
-        <ul className="space-y-2 text-gray-700">
-          <li className="flex items-center gap-2">
-            <input type="checkbox" className="form-checkbox text-blue-600 rounded" checked={isProfileComplete} disabled />
-            Lengkapi data diri
-          </li>
-          <li className="flex items-center gap-2">
-            <input type="checkbox" className="form-checkbox text-blue-600 rounded" checked={isDocumentUploaded} disabled />
-            Upload dokumen
-          </li>
-          <li className="flex items-center gap-2">
-            <input type="checkbox" className="form-checkbox text-blue-600 rounded" checked={hasApplied} disabled />
-            Daftar lowongan
-          </li>
-        </ul>
+      {/* Langkah Selanjutnya */}
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 mb-8">
+        <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+          Langkah Selanjutnya
+          <div className="h-1 w-12 bg-blue-600 rounded-full"></div>
+        </h2>
+        <div className="space-y-4">
+          <div className="flex items-center gap-4 p-4 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors border border-gray-100 group">
+            <div className={`p-2 rounded-lg ${is_profile_complete ? 'bg-green-100 text-green-600' : 'bg-white border text-gray-400 group-hover:border-blue-300'}`}>
+              {is_profile_complete ? <CheckCircle className="w-5 h-5" /> : <Circle className="w-5 h-5" />}
+            </div>
+            <div>
+              <p className={`font-bold ${is_profile_complete ? 'text-gray-400 line-through' : 'text-gray-900'}`}>
+                {is_profile_complete ? 'Data Diri Sudah Lengkap' : 'Lengkapi Data Diri'}
+              </p>
+              <p className="text-xs text-gray-500">Identitas, Alamat, dan Pendidikan</p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-4 p-4 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors border border-gray-100 group">
+            <div className={`p-2 rounded-lg ${is_document_uploaded ? 'bg-green-100 text-green-600' : 'bg-white border text-gray-400 group-hover:border-blue-300'}`}>
+              {is_document_uploaded ? <CheckCircle className="w-5 h-5" /> : <Circle className="w-5 h-5" />}
+            </div>
+            <div>
+              <p className={`font-bold ${is_document_uploaded ? 'text-gray-400 line-through' : 'text-gray-900'}`}>
+                {is_document_uploaded ? 'Dokumen Sudah Lengkap' : 'Upload Dokumen Wajib'}
+              </p>
+              <p className="text-xs text-gray-500">CV, Pas Foto, dan KTP</p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-4 p-4 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors border border-gray-100 group">
+            <div className={`p-2 rounded-lg ${has_applied ? 'bg-green-100 text-green-600' : 'bg-white border text-gray-400 group-hover:border-blue-300'}`}>
+              {has_applied ? <CheckCircle className="w-5 h-5" /> : <Circle className="w-5 h-5" />}
+            </div>
+            <div>
+              <p className={`font-bold ${has_applied ? 'text-gray-400 line-through' : 'text-gray-900'}`}>
+                {has_applied ? 'Sudah Melamar Lowongan' : 'Daftar Lowongan Pekerjaan'}
+              </p>
+              <p className="text-xs text-gray-500">Pilih posisi yang sesuai dengan keahlian Anda</p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
