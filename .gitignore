@@ -1,16 +1,33 @@
+node_modules
+
+# Sensitive data
+.env
+.env.*
+backend/.env
+backend/.env.*
+*.sql
+client_secret_*.json
+karir.db
+
+# Build artifacts and temporary files
+dist
+dist-ssr
+production_dist*
+*.zip
+*.rar
+*.7z
+
+# Storage and Uploads
+backend/storage/*
+!backend/storage/.gitkeep
+backend/public/uploads/*
+!backend/public/uploads/.gitkeep
+
 # Logs
 logs
 *.log
 npm-debug.log*
 yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
-
-node_modules
-dist
-dist-ssr
-*.local
 
 # Editor directories and files
 .vscode/*

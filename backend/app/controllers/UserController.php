@@ -16,49 +16,67 @@ class UserController {
     }
 
     public function getProfile() {
-        $user = AuthMiddleware::authenticate();
-        
-        $query = "SELECT id, name, email, phone, photo, role, nik, religion, height, weight, 
-                         birth_place, birth_date, 
-                         ktp_address, ktp_rt, ktp_rw, ktp_kelurahan, ktp_kecamatan, ktp_city, ktp_kabupaten,
-                         domicile_address, domicile_rt, domicile_rw, domicile_kelurahan, domicile_kecamatan, domicile_city, domicile_kabupaten,
-                         last_education, major, gpa, skills, email_verified_at, phone_verified_at 
-                  FROM users WHERE id = :id";
-        
-        $stmt = $this->db->prepare($query);
-        $stmt->bindParam(":id", $user['id']);
-        $stmt->execute();
-        
-        $profile = $stmt->fetch(PDO::FETCH_ASSOC);
-        ResponseHelper::success("Profile fetched", $profile);
+        try {
+            $user = AuthMiddleware::authenticate();
+            
+            $query = "SELECT id, name, email, phone, photo, role, nik, religion, height, weight, 
+                             birth_place, birth_date, 
+                             ktp_address, ktp_rt, ktp_rw, ktp_kelurahan, ktp_kecamatan, ktp_city, ktp_kabupaten,
+                             domicile_address, domicile_rt, domicile_rw, domicile_kelurahan, domicile_kecamatan, domicile_city, domicile_kabupaten,
+                             last_education, major, gpa, skills, email_verified_at, phone_verified_at, provider 
+                      FROM users WHERE id = :id";
+            
+            $stmt = $this->db->prepare($query);
+            $stmt->bindParam(":id", $user['id']);
+            $stmt->execute();
+            
+            $profile = $stmt->fetch(PDO::FETCH_ASSOC);
+            ResponseHelper::success("Profile fetched", $profile);
+        } catch (\Exception $e) {
+            error_log("GetProfile Error: " . $e->getMessage());
+            ResponseHelper::error("Server Error: " . $e->getMessage(), 500);
+        }
     }
 
     public function updateProfile() {
         $user = AuthMiddleware::authenticate();
         $data = json_decode(file_get_contents("php://input"), true);
 
-        // Allowed fields to update
-        $fields = [
-            'name', 'email', 'nik', 'religion', 'height', 'weight', 'birth_place', 'birth_date',
-            'ktp_address', 'ktp_rt', 'ktp_rw', 'ktp_kelurahan', 'ktp_kecamatan', 'ktp_city', 'ktp_kabupaten',
-            'domicile_address', 'domicile_rt', 'domicile_rw', 'domicile_kelurahan', 'domicile_kecamatan', 'domicile_city', 'domicile_kabupaten',
-            'last_education', 'major', 'gpa', 'skills'
-        ];
-
-        // Restrict fields for ADMIN (MVP)
-        if ($user['role'] === 'ADMIN') {
-            $fields = ['name', 'email', 'phone'];
-        }
-
-        // Check if phone can be updated (only if not verified)
-        $query = "SELECT phone_verified_at FROM users WHERE id = :id";
+        // Fetch current user details including provider
+        $query = "SELECT email, phone_verified_at, provider FROM users WHERE id = :id";
         $stmt = $this->db->prepare($query);
         $stmt->bindParam(":id", $user['id']);
         $stmt->execute();
         $currUser = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        if ($currUser['phone_verified_at'] === null && isset($data['phone'])) {
-            $fields[] = 'phone';
+        // Allowed fields to update
+        $fields = [
+            'name', 'email', 'phone', 'nik', 'religion', 'height', 'weight', 'birth_place', 'birth_date',
+            'ktp_address', 'ktp_rt', 'ktp_rw', 'ktp_kelurahan', 'ktp_kecamatan', 'ktp_city', 'ktp_kabupaten',
+            'domicile_address', 'domicile_rt', 'domicile_rw', 'domicile_kelurahan', 'domicile_kecamatan', 'domicile_city', 'domicile_kabupaten',
+            'last_education', 'major', 'gpa', 'skills', 'photo'
+        ];
+
+        // Restrict fields for ADMIN (MVP)
+        if (strtoupper($user['role']) === 'ADMIN') {
+            $fields = ['name', 'phone', 'photo']; // Email read-only via API
+        }
+
+        // Restrict EMAIL update for Google users
+        if ($currUser['provider'] === 'google') {
+            // Remove 'email' from allowed fields if it's being changed
+            if (isset($data['email']) && $data['email'] !== $currUser['email']) {
+                 ResponseHelper::error("Email tidak dapat diubah karena akun terhubung dengan Google", 403);
+            }
+            // Ensure email stays same if passed
+            if (isset($data['email'])) {
+                unset($data['email']);
+            }
+        }
+
+
+        if (isset($data['phone']) && !empty($data['phone'])) {
+            $updateParts[] = "phone_verified_at = NOW()";
         }
 
         $updateParts = [];
@@ -104,104 +122,168 @@ class UserController {
     }
 
     public function uploadPhoto() {
-        $user = AuthMiddleware::authenticate();
+        try {
+            $user = AuthMiddleware::authenticate();
 
-        if (!isset($_FILES['photo'])) {
-            ResponseHelper::error("No photo uploaded");
+            if (!isset($_FILES['photo'])) {
+                ResponseHelper::error("No photo uploaded");
+            }
+
+            $file = $_FILES['photo'];
+            $allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
+            $maxSize = 2 * 1024 * 1024; // 2MB
+
+            if (!in_array($file['type'], $allowedTypes)) {
+                ResponseHelper::error("Invalid file type. Only JPG, JPEG, and PNG are allowed.");
+            }
+
+            if ($file['size'] > $maxSize) {
+                ResponseHelper::error("File size exceeds 2MB limit.");
+            }
+
+            $ext = pathinfo($file['name'], PATHINFO_EXTENSION);
+            $fileName = "profile_" . $user['id'] . "_" . time() . "." . $ext;
+            $uploadDir = __DIR__ . "/../../public/uploads/profile/";
+            $targetPath = $uploadDir . $fileName;
+
+            if (!is_dir($uploadDir)) {
+                mkdir($uploadDir, 0755, true);
+            }
+
+            if (move_uploaded_file($file['tmp_name'], $targetPath)) {
+                // Resize image if it's too large
+                $this->resizeImage($targetPath, 800);
+                
+                chmod($targetPath, 0644);
+                $query = "UPDATE users SET photo = :photo WHERE id = :id";
+                $stmt = $this->db->prepare($query);
+                $photoPath = "/uploads/profile/" . $fileName;
+                $stmt->bindParam(":photo", $photoPath);
+                $stmt->bindParam(":id", $user['id']);
+                $stmt->execute();
+
+                ResponseHelper::success("Photo uploaded successfully", ["photo_url" => $photoPath]);
+            } else {
+                ResponseHelper::error("Failed to upload photo", 500);
+            }
+        } catch (\Exception $e) {
+            error_log("UploadPhoto Error: " . $e->getMessage());
+            ResponseHelper::error("Server Error: " . $e->getMessage(), 500);
         }
+    }
 
-        $file = $_FILES['photo'];
-        $allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
-        $maxSize = 2 * 1024 * 1024; // 2MB
+    public function deletePhoto() {
+        try {
+            $user = AuthMiddleware::authenticate();
 
-        if (!in_array($file['type'], $allowedTypes)) {
-            ResponseHelper::error("Invalid file type. Only JPG, JPEG, and PNG are allowed.");
-        }
-
-        if ($file['size'] > $maxSize) {
-            ResponseHelper::error("File size exceeds 2MB limit.");
-        }
-
-        $ext = pathinfo($file['name'], PATHINFO_EXTENSION);
-        $fileName = "profile_" . $user['id'] . "_" . time() . "." . $ext;
-        $uploadDir = __DIR__ . "/../../storage/uploads/profile/";
-        $targetPath = $uploadDir . $fileName;
-
-        if (move_uploaded_file($file['tmp_name'], $targetPath)) {
-            $query = "UPDATE users SET photo = :photo WHERE id = :id";
+            // 1. Get current photo path
+            $query = "SELECT photo FROM users WHERE id = :id";
             $stmt = $this->db->prepare($query);
-            $photoPath = "/storage/uploads/profile/" . $fileName;
-            $stmt->bindParam(":photo", $photoPath);
-            $stmt->bindParam(":id", $user['id']);
-            $stmt->execute();
+            $stmt->execute([':id' => $user['id']]);
+            $currentUser = $stmt->fetch(PDO::FETCH_ASSOC);
 
-            ResponseHelper::success("Photo uploaded successfully", ["photo_url" => $photoPath]);
-        } else {
-            ResponseHelper::error("Failed to upload photo", 500);
+            if ($currentUser && !empty($currentUser['photo'])) {
+                // 2. Delete file if exists
+                // Note: photo path in DB starts with /uploads/ or /storage/uploads/
+                $cleanPath = ltrim($currentUser['photo'], '/');
+                
+                // Try public dir first (new logic)
+                $filePath = __DIR__ . "/../../public/" . $cleanPath;
+                if (!file_exists($filePath)) {
+                    // Fallback to root (old logic or symlink)
+                    $filePath = __DIR__ . "/../../" . $cleanPath;
+                }
+
+                if (file_exists($filePath) && !is_dir($filePath)) {
+                    unlink($filePath);
+                }
+
+                // 3. Update DB
+                $updateQuery = "UPDATE users SET photo = NULL WHERE id = :id";
+                $updateStmt = $this->db->prepare($updateQuery);
+                $updateStmt->execute([':id' => $user['id']]);
+
+                ResponseHelper::success("Photo deleted successfully");
+            } else {
+                ResponseHelper::error("No photo to delete", 404);
+            }
+        } catch (\Exception $e) {
+            error_log("DeletePhoto Error: " . $e->getMessage());
+            ResponseHelper::error("Server Error: " . $e->getMessage(), 500);
         }
     }
 
     public function requestPhoneOtp() {
-        $user = AuthMiddleware::authenticate();
-        $data = json_decode(file_get_contents("php://input"));
+        try {
+            $user = AuthMiddleware::authenticate();
+            $data = json_decode(file_get_contents("php://input"));
 
-        if (!isset($data->phone)) {
-            ResponseHelper::error("Phone number is required");
-        }
+            if (!isset($data->phone)) {
+                ResponseHelper::error("Phone number is required");
+            }
 
-        $otp = sprintf("%06d", mt_rand(1, 999999));
-        $hashedOtp = password_hash($otp, PASSWORD_BCRYPT);
-        $otpExpires = date('Y-m-d H:i:s', strtotime('+10 minutes'));
+            $otp = sprintf("%06d", mt_rand(1, 999999));
+            $hashedOtp = password_hash($otp, PASSWORD_BCRYPT);
+            $otpExpires = date('Y-m-d H:i:s', strtotime('+10 minutes'));
 
-        $query = "UPDATE users SET phone = :phone, phone_otp = :otp, phone_otp_expires_at = :expires WHERE id = :id";
-        $stmt = $this->db->prepare($query);
-        $stmt->bindParam(":phone", $data->phone);
-        $stmt->bindParam(":otp", $hashedOtp);
-        $stmt->bindParam(":expires", $otpExpires);
-        $stmt->bindParam(":id", $user['id']);
+            $query = "UPDATE users SET phone = :phone, phone_otp = :otp, phone_otp_expires_at = :expires WHERE id = :id";
+            $stmt = $this->db->prepare($query);
+            $stmt->bindParam(":phone", $data->phone);
+            $stmt->bindParam(":otp", $hashedOtp);
+            $stmt->bindParam(":expires", $otpExpires);
+            $stmt->bindParam(":id", $user['id']);
 
-        if ($stmt->execute()) {
-            // Log OTP for testing/verification
-            $logDir = __DIR__ . "/../../storage/logs";
-            if (!is_dir($logDir)) mkdir($logDir, 0777, true);
-            $logFile = $logDir . "/otp.log";
-            $timestamp = date('Y-m-d H:i:s');
-            $logMessage = "[$timestamp] User ID: {$user['id']} | Phone: {$data->phone} | OTP: $otp\n";
-            file_put_contents($logFile, $logMessage, FILE_APPEND);
+            if ($stmt->execute()) {
+                // Log OTP for testing/verification
+                $logDir = __DIR__ . "/../../storage/logs";
+                if (!is_dir($logDir)) mkdir($logDir, 0777, true);
+                $logFile = $logDir . "/otp.log";
+                $timestamp = date('Y-m-d H:i:s');
+                $logMessage = "[$timestamp] User ID: {$user['id']} | Phone: {$data->phone} | OTP: $otp\n";
+                file_put_contents($logFile, $logMessage, FILE_APPEND);
 
-            ResponseHelper::success("OTP sent to your phone (simulated)");
-        } else {
-            ResponseHelper::error("Failed to request OTP", 500);
+                ResponseHelper::success("OTP sent to your phone (simulated)");
+            } else {
+                ResponseHelper::error("Failed to request OTP", 500);
+            }
+        } catch (\Exception $e) {
+            error_log("RequestPhoneOtp Error: " . $e->getMessage());
+            ResponseHelper::error("Server Error: " . $e->getMessage(), 500);
         }
     }
 
     public function verifyPhone() {
-        $user = AuthMiddleware::authenticate();
-        $data = json_decode(file_get_contents("php://input"));
+        try {
+            $user = AuthMiddleware::authenticate();
+            $data = json_decode(file_get_contents("php://input"));
 
-        if (!isset($data->otp)) {
-            ResponseHelper::error("OTP is required");
-        }
-
-        $query = "SELECT phone_otp, phone_otp_expires_at FROM users WHERE id = :id";
-        $stmt = $this->db->prepare($query);
-        $stmt->bindParam(":id", $user['id']);
-        $stmt->execute();
-        $userData = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        if (password_verify($data->otp, $userData['phone_otp'])) {
-            if (strtotime($userData['phone_otp_expires_at']) < time()) {
-                ResponseHelper::error("OTP expired");
+            if (!isset($data->otp)) {
+                ResponseHelper::error("OTP is required");
             }
 
-            $query = "UPDATE users SET phone_verified_at = NOW(), phone_otp = NULL, phone_otp_expires_at = NULL WHERE id = :id";
+            $query = "SELECT phone_otp, phone_otp_expires_at FROM users WHERE id = :id";
             $stmt = $this->db->prepare($query);
             $stmt->bindParam(":id", $user['id']);
             $stmt->execute();
+            $userData = $stmt->fetch(PDO::FETCH_ASSOC);
 
-            ResponseHelper::success("Phone number verified successfully. It can no longer be changed.");
-        } else {
-            ResponseHelper::error("Invalid OTP");
+            if (password_verify($data->otp, $userData['phone_otp'])) {
+                if (strtotime($userData['phone_otp_expires_at']) < time()) {
+                    ResponseHelper::error("OTP expired");
+                }
+
+                $query = "UPDATE users SET phone_verified_at = NOW(), phone_otp = NULL, phone_otp_expires_at = NULL WHERE id = :id";
+                $stmt = $this->db->prepare($query);
+                $stmt->bindParam(":id", $user['id']);
+                $stmt->execute();
+
+                ResponseHelper::success("Phone number verified successfully. It can no longer be changed.");
+            } else {
+                ResponseHelper::error("Invalid OTP");
+            }
+        } catch (\Exception $e) {
+            error_log("VerifyPhone Error: " . $e->getMessage());
+            ResponseHelper::error("Server Error: " . $e->getMessage(), 500);
         }
     }
 
@@ -223,7 +305,10 @@ class UserController {
 
     public function uploadDocuments() {
         $user = AuthMiddleware::authenticate();
-        $uploadDir = __DIR__ . "/../../storage/uploads/documents/";
+        $uploadDir = __DIR__ . "/../../public/uploads/documents/";
+        if (!is_dir($uploadDir)) {
+            mkdir($uploadDir, 0755, true);
+        }
         
         try {
             $files = $_FILES;
@@ -273,7 +358,8 @@ class UserController {
                     $targetPath = $uploadDir . $fileName;
 
                     if (move_uploaded_file($file['tmp_name'], $targetPath)) {
-                        $docData[$dbField] = "/storage/uploads/documents/" . $fileName;
+                        chmod($targetPath, 0644);
+                        $docData[$dbField] = "/uploads/documents/" . $fileName;
                     }
                 }
             }
@@ -324,43 +410,48 @@ class UserController {
         }
     }
     public function changePassword() {
-        $user = AuthMiddleware::authenticate();
-        $data = json_decode(file_get_contents("php://input"));
+        try {
+            $user = AuthMiddleware::authenticate();
+            $data = json_decode(file_get_contents("php://input"));
 
-        if (!isset($data->current_password) || !isset($data->new_password) || !isset($data->confirm_password)) {
-            ResponseHelper::error("All fields are required");
-        }
+            if (!isset($data->current_password) || !isset($data->new_password) || !isset($data->confirm_password)) {
+                ResponseHelper::error("All fields are required");
+            }
 
-        if ($data->new_password !== $data->confirm_password) {
-            ResponseHelper::error("New password and confirmation do not match");
-        }
-        
-        if (strlen($data->new_password) < 6) {
-             ResponseHelper::error("Password must be at least 6 characters");
-        }
+            if ($data->new_password !== $data->confirm_password) {
+                ResponseHelper::error("New password and confirmation do not match");
+            }
+            
+            if (strlen($data->new_password) < 6) {
+                 ResponseHelper::error("Password must be at least 6 characters");
+            }
 
-        // Verify current password
-        $query = "SELECT password FROM users WHERE id = :id";
-        $stmt = $this->db->prepare($query);
-        $stmt->bindParam(":id", $user['id']);
-        $stmt->execute();
-        $currentUser = $stmt->fetch(PDO::FETCH_ASSOC);
+            // Verify current password
+            $query = "SELECT password FROM users WHERE id = :id";
+            $stmt = $this->db->prepare($query);
+            $stmt->bindParam(":id", $user['id']);
+            $stmt->execute();
+            $currentUser = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        if (!password_verify($data->current_password, $currentUser['password'])) {
-            ResponseHelper::error("Incorrect current password", 401);
-        }
+            if (!password_verify($data->current_password, $currentUser['password'])) {
+                ResponseHelper::error("Incorrect current password", 401);
+            }
 
-        // Update password
-        $newPasswordHash = password_hash($data->new_password, PASSWORD_BCRYPT);
-        $updateQuery = "UPDATE users SET password = :password WHERE id = :id";
-        $updateStmt = $this->db->prepare($updateQuery);
-        $updateStmt->bindParam(":password", $newPasswordHash);
-        $updateStmt->bindParam(":id", $user['id']);
+            // Update password
+            $newPasswordHash = password_hash($data->new_password, PASSWORD_BCRYPT);
+            $updateQuery = "UPDATE users SET password = :password WHERE id = :id";
+            $updateStmt = $this->db->prepare($updateQuery);
+            $updateStmt->bindParam(":password", $newPasswordHash);
+            $updateStmt->bindParam(":id", $user['id']);
 
-        if ($updateStmt->execute()) {
-            ResponseHelper::success("Password changed successfully");
-        } else {
-            ResponseHelper::error("Failed to change password", 500);
+            if ($updateStmt->execute()) {
+                ResponseHelper::success("Password changed successfully");
+            } else {
+                ResponseHelper::error("Failed to change password", 500);
+            }
+        } catch (\Exception $e) {
+            error_log("ChangePassword Error: " . $e->getMessage());
+            ResponseHelper::error("Server Error: " . $e->getMessage(), 500);
         }
     }
     public function getDashboardSummary() {
@@ -409,5 +500,67 @@ class UserController {
         } catch (\Exception $e) {
             ResponseHelper::error("Failed to fetch dashboard summary: " . $e->getMessage(), 500);
         }
+    }
+
+    private function resizeImage($filePath, $maxSize) {
+        $info = getimagesize($filePath);
+        if (!$info) return;
+
+        list($width, $height, $type) = $info;
+
+        // Only resize if one of the sides is larger than maxSize
+        if ($width <= $maxSize && $height <= $maxSize) return;
+
+        $ratio = $width / $height;
+        if ($ratio > 1) {
+            $newWidth = $maxSize;
+            $newHeight = $maxSize / $ratio;
+        } else {
+            $newWidth = $maxSize * $ratio;
+            $newHeight = $maxSize;
+        }
+
+        switch ($type) {
+            case IMAGETYPE_JPEG:
+                $src = imagecreatefromjpeg($filePath);
+                break;
+            case IMAGETYPE_PNG:
+                $src = imagecreatefrompng($filePath);
+                break;
+            case IMAGETYPE_WEBP:
+                $src = imagecreatefromwebp($filePath);
+                break;
+            default:
+                return;
+        }
+
+        if (!$src) return;
+
+        $dst = imagecreatetruecolor($newWidth, $newHeight);
+        
+        // Preserve transparency for PNG and WEBP
+        if ($type == IMAGETYPE_PNG || $type == IMAGETYPE_WEBP) {
+            imagealphablending($dst, false);
+            imagesavealpha($dst, true);
+            $transparent = imagecolorallocatealpha($dst, 255, 255, 255, 127);
+            imagefilledrectangle($dst, 0, 0, $newWidth, $newHeight, $transparent);
+        }
+
+        imagecopyresampled($dst, $src, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
+
+        switch ($type) {
+            case IMAGETYPE_JPEG:
+                imagejpeg($dst, $filePath, 85);
+                break;
+            case IMAGETYPE_PNG:
+                imagepng($dst, $filePath, 8); // Compression 0-9
+                break;
+            case IMAGETYPE_WEBP:
+                imagewebp($dst, $filePath, 85);
+                break;
+        }
+
+        imagedestroy($src);
+        imagedestroy($dst);
     }
 }

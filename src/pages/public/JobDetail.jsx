@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { MapPin, Clock, ArrowLeft, Loader2 } from 'lucide-react';
+import { MapPin, Clock, ArrowLeft, Loader2, Building2 } from 'lucide-react';
 import { useNotification } from '../../context/NotificationContext';
+import { useAuth } from '../../hooks/useAuth';
 
 const JobDetail = () => {
   const { slug } = useParams();
   const { showNotification } = useNotification();
+  const { user } = useAuth();
   const [job, setJob] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -16,7 +18,7 @@ const JobDetail = () => {
   const fetchJobDetail = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch(`http://${window.location.hostname}:8000/api/jobs/${slug}`);
+      const response = await fetch(`${window.API_BASE_URL}/api/jobs/${slug}`);
       const data = await response.json();
       if (data.success) {
         setJob(data.data);
@@ -95,25 +97,32 @@ const JobDetail = () => {
         </div>
 
         <div className="flex justify-end pt-6 border-t items-center gap-4">
-          {!isJobOpen(job) && <span className="text-red-500 font-medium">Masa pendaftaran telah berakhir.</span>}
-          <Link
-            to={isJobOpen(job) ? `/apply/${job.id}` : '#'}
-            className={`px-8 py-4 font-bold rounded-lg transition-colors shadow-lg ${isJobOpen(job)
-              ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-blue-200'
-              : 'bg-gray-200 text-gray-400 cursor-not-allowed shadow-none pointer-events-none'
-              }`}
-          >
-            {isJobOpen(job) ? 'Lamar Sekarang' : 'Pendaftaran Tutup'}
-          </Link>
+          {user?.role === 'admin' ? (
+            <div className="text-center w-full py-4">
+              <p className="text-gray-600 font-medium">
+                <span className="inline-block px-4 py-2 bg-blue-50 text-blue-700 rounded-lg border border-blue-200">
+                  👔 Anda adalah Admin/HR. Anda tidak dapat melamar pekerjaan karena Anda yang membuka lowongan ini.
+                </span>
+              </p>
+            </div>
+          ) : (
+            <>
+              {!isJobOpen(job) && <span className="text-red-500 font-medium">Masa pendaftaran telah berakhir.</span>}
+              <Link
+                to={isJobOpen(job) ? `/apply/${job.id}` : '#'}
+                className={`px-8 py-4 font-bold rounded-lg transition-colors shadow-lg ${isJobOpen(job)
+                  ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-blue-200'
+                  : 'bg-gray-200 text-gray-400 cursor-not-allowed shadow-none pointer-events-none'
+                  }`}
+              >
+                {isJobOpen(job) ? 'Lamar Sekarang' : 'Pendaftaran Tutup'}
+              </Link>
+            </>
+          )}
         </div>
       </div>
     </div>
   );
 };
-
-// Helper Building2 icon since it was used but not imported in previous scope
-const Building2 = ({ className }) => (
-  <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z" /><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2" /><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2" /><path d="M10 6h4" /><path d="M10 10h4" /><path d="M10 14h4" /><path d="M10 18h4" /></svg>
-);
 
 export default JobDetail;

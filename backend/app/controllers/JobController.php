@@ -16,12 +16,17 @@ class JobController {
     }
 
     public function index() {
-        $query = "SELECT * FROM jobs ORDER BY created_at DESC";
-        $stmt = $this->db->prepare($query);
-        $stmt->execute();
+        try {
+            $query = "SELECT * FROM jobs ORDER BY created_at DESC";
+            $stmt = $this->db->prepare($query);
+            $stmt->execute();
 
-        $jobs = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        ResponseHelper::success("Jobs fetched successfully", $jobs);
+            $jobs = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            ResponseHelper::success("Jobs fetched successfully", $jobs);
+        } catch (\Exception $e) {
+            error_log("Job Index Error: " . $e->getMessage());
+            ResponseHelper::error("Server Error: " . $e->getMessage(), 500);
+        }
     }
 
     public function create() {
@@ -142,28 +147,38 @@ class JobController {
     }
 
     public function delete($id) {
-        AuthMiddleware::isAdmin();
+        try {
+            AuthMiddleware::isAdmin();
 
-        $query = "DELETE FROM jobs WHERE id = :id";
-        $stmt = $this->db->prepare($query);
-        
-        if ($stmt->execute([':id' => $id])) {
-            ResponseHelper::success("Job deleted successfully");
-        } else {
-            ResponseHelper::error("Failed to delete job", 500);
+            $query = "DELETE FROM jobs WHERE id = :id";
+            $stmt = $this->db->prepare($query);
+            
+            if ($stmt->execute([':id' => $id])) {
+                ResponseHelper::success("Job deleted successfully");
+            } else {
+                ResponseHelper::error("Failed to delete job", 500);
+            }
+        } catch (\Exception $e) {
+            error_log("Delete Job Error: " . $e->getMessage());
+            ResponseHelper::error("Server Error: " . $e->getMessage(), 500);
         }
     }
 
     public function show($id) {
-        $query = "SELECT * FROM jobs WHERE id = :id";
-        $stmt = $this->db->prepare($query);
-        $stmt->execute([':id' => $id]);
+        try {
+            $query = "SELECT * FROM jobs WHERE id = :id";
+            $stmt = $this->db->prepare($query);
+            $stmt->execute([':id' => $id]);
 
-        $job = $stmt->fetch(PDO::FETCH_ASSOC);
-        if ($job) {
-            ResponseHelper::success("Job fetched successfully", $job);
-        } else {
-            ResponseHelper::error("Job not found", 404);
+            $job = $stmt->fetch(PDO::FETCH_ASSOC);
+            if ($job) {
+                ResponseHelper::success("Job fetched successfully", $job);
+            } else {
+                ResponseHelper::error("Job not found", 404);
+            }
+        } catch (\Exception $e) {
+            error_log("Show Job Error: " . $e->getMessage());
+            ResponseHelper::error("Server Error: " . $e->getMessage(), 500);
         }
     }
 }

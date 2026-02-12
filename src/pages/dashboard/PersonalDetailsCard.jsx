@@ -4,6 +4,10 @@ import { User, Mail, Phone, MapPin } from 'lucide-react';
 const PersonalDetailsCard = ({
   isEditing,
   name, setName,
+  email, setEmail,
+  phone, setPhone,
+  provider,
+  phoneVerifiedAt,
   nik, setNik,
   religion, setReligion,
   height, setHeight,
@@ -18,7 +22,7 @@ const PersonalDetailsCard = ({
       <div className="space-y-4">
         <div>
           <label htmlFor="name" className={`block text-sm font-semibold mb-1 ${missingFields.includes('name') ? 'text-rose-600' : 'text-gray-700'}`}>
-            Nama Lengkap {missingFields.includes('name') && <span className="text-[10px] ml-1 font-bold bg-rose-100 px-1.5 py-0.5 rounded-full uppercase tracking-tighter">Wajib Diisi</span>}
+            Nama Lengkap
           </label>
           <div className="mt-1 relative rounded-md shadow-sm">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -41,8 +45,60 @@ const PersonalDetailsCard = ({
         </div>
 
         <div>
+          <label htmlFor="email" className="block text-sm font-semibold mb-1 text-gray-700">
+            Email {provider === 'google' && <span className="text-[10px] ml-1 font-bold bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full border border-blue-100">Google Linked</span>}
+          </label>
+          <div className="mt-1 relative rounded-md shadow-sm">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Mail className="h-5 w-5 text-gray-400" />
+            </div>
+            <input
+              type="email"
+              name="email"
+              id="email"
+              className={`block w-full pl-10 pr-3 py-2 border rounded-lg transition-all duration-200 sm:text-sm ${isEditing && provider !== 'google'
+                ? "border-gray-300 bg-white focus:ring-blue-500 focus:border-blue-500"
+                : "border-transparent bg-gray-50/30 text-gray-500 cursor-not-allowed"
+                }`}
+              disabled={!isEditing || provider === 'google'}
+              placeholder="email@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              title={provider === 'google' ? "Email tidak dapat diubah karena login via Google" : ""}
+            />
+          </div>
+          {isEditing && provider === 'google' && (
+            <p className="text-xs text-gray-500 mt-1">Email tidak dapat diubah karena akun terhubung dengan Google.</p>
+          )}
+        </div>
+
+        <div>
+          <label htmlFor="phone" className={`block text-sm font-semibold mb-1 ${missingFields.includes('phone') ? 'text-rose-600' : 'text-gray-700'}`}>
+            No. WhatsApp
+          </label>
+          <div className="mt-1 relative rounded-md shadow-sm">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Phone className="h-5 w-5 text-gray-400" />
+            </div>
+            <input
+              type="tel"
+              name="phone"
+              id="phone"
+              className={`block w-full pl-10 pr-3 py-2 border rounded-lg transition-all duration-200 sm:text-sm ${isEditing
+                ? (missingFields.includes('phone') ? "border-rose-300 bg-rose-50/10 focus:ring-rose-500 focus:border-rose-500" : "border-gray-300 bg-white focus:ring-blue-500 focus:border-blue-500")
+                : (missingFields.includes('phone') ? "border-rose-200 bg-rose-50/5 text-gray-700 cursor-default" : "border-transparent bg-gray-50/30 text-gray-700 cursor-default")
+                }`}
+              disabled={!isEditing}
+              placeholder="081234567890"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+            />
+          </div>
+        </div>
+
+        <div>
           <label htmlFor="nik" className={`block text-sm font-semibold mb-1 ${missingFields.includes('nik') ? 'text-rose-600' : 'text-gray-700'}`}>
-            NIK {missingFields.includes('nik') && <span className="text-[10px] ml-1 font-bold bg-rose-100 px-1.5 py-0.5 rounded-full uppercase tracking-tighter">Wajib Diisi</span>}
+            NIK
           </label>
           <div className="mt-1 relative rounded-md shadow-sm">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -65,7 +121,9 @@ const PersonalDetailsCard = ({
         </div>
 
         <div>
-          <label htmlFor="religion" className="block text-sm font-semibold text-gray-700">Agama</label>
+          <label htmlFor="religion" className={`block text-sm font-semibold mb-1 ${missingFields.includes('religion') ? 'text-rose-600' : 'text-gray-700'}`}>
+            Agama
+          </label>
           <div className="mt-1 relative rounded-md shadow-sm">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <User className="h-5 w-5 text-gray-400" />
@@ -74,8 +132,8 @@ const PersonalDetailsCard = ({
               name="religion"
               id="religion"
               className={`block w-full pl-10 pr-3 py-2 border rounded-lg transition-all duration-200 sm:text-sm ${isEditing
-                ? "border-gray-300 bg-white focus:ring-blue-500 focus:border-blue-500"
-                : "border-transparent bg-gray-50/30 text-gray-700 cursor-default"
+                ? (missingFields.includes('religion') ? "border-rose-300 bg-rose-50/10 focus:ring-rose-500 focus:border-rose-500" : "border-gray-300 bg-white focus:ring-blue-500 focus:border-blue-500")
+                : (missingFields.includes('religion') ? "border-rose-200 bg-rose-50/5 text-gray-700 cursor-default" : "border-transparent bg-gray-50/30 text-gray-700 cursor-default")
                 }`}
               disabled={!isEditing}
               value={religion}
@@ -93,7 +151,9 @@ const PersonalDetailsCard = ({
         </div>
 
         <div>
-          <label htmlFor="height" className="block text-sm font-semibold text-gray-700">Tinggi Badan</label>
+          <label htmlFor="height" className={`block text-sm font-semibold mb-1 ${missingFields.includes('height') ? 'text-rose-600' : 'text-gray-700'}`}>
+            Tinggi Badan
+          </label>
           <div className="mt-1 relative rounded-md shadow-sm">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <User className="h-5 w-5 text-gray-400" />
@@ -103,11 +163,11 @@ const PersonalDetailsCard = ({
               name="height"
               id="height"
               className={`block w-full pl-10 pr-3 py-2 border rounded-lg transition-all duration-200 sm:text-sm ${isEditing
-                ? "border-gray-300 bg-white focus:ring-blue-500 focus:border-blue-500"
-                : "border-transparent bg-gray-50/30 text-gray-700 cursor-default"
+                ? (missingFields.includes('height') ? "border-rose-300 bg-rose-50/10 focus:ring-rose-500 focus:border-rose-500" : "border-gray-300 bg-white focus:ring-blue-500 focus:border-blue-500")
+                : (missingFields.includes('height') ? "border-rose-200 bg-rose-50/5 text-gray-700 cursor-default" : "border-transparent bg-gray-50/30 text-gray-700 cursor-default")
                 }`}
               disabled={!isEditing}
-              placeholder="Contoh: 170 cm"
+              placeholder="Contoh: 170"
               value={height}
               onChange={(e) => setHeight(e.target.value)}
             />
@@ -115,7 +175,9 @@ const PersonalDetailsCard = ({
         </div>
 
         <div>
-          <label htmlFor="weight" className="block text-sm font-semibold text-gray-700">Berat Badan</label>
+          <label htmlFor="weight" className={`block text-sm font-semibold mb-1 ${missingFields.includes('weight') ? 'text-rose-600' : 'text-gray-700'}`}>
+            Berat Badan
+          </label>
           <div className="mt-1 relative rounded-md shadow-sm">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <User className="h-5 w-5 text-gray-400" />
@@ -125,11 +187,11 @@ const PersonalDetailsCard = ({
               name="weight"
               id="weight"
               className={`block w-full pl-10 pr-3 py-2 border rounded-lg transition-all duration-200 sm:text-sm ${isEditing
-                ? "border-gray-300 bg-white focus:ring-blue-500 focus:border-blue-500"
-                : "border-transparent bg-gray-50/30 text-gray-700 cursor-default"
+                ? (missingFields.includes('weight') ? "border-rose-300 bg-rose-50/10 focus:ring-rose-500 focus:border-rose-500" : "border-gray-300 bg-white focus:ring-blue-500 focus:border-blue-500")
+                : (missingFields.includes('weight') ? "border-rose-200 bg-rose-50/5 text-gray-700 cursor-default" : "border-transparent bg-gray-50/30 text-gray-700 cursor-default")
                 }`}
               disabled={!isEditing}
-              placeholder="Contoh: 60 kg"
+              placeholder="Contoh: 60"
               value={weight}
               onChange={(e) => setWeight(e.target.value)}
             />
@@ -138,7 +200,7 @@ const PersonalDetailsCard = ({
 
         <div>
           <label htmlFor="birth-place" className={`block text-sm font-semibold mb-1 ${missingFields.includes('birth_place') ? 'text-rose-600' : 'text-gray-700'}`}>
-            Tempat Lahir {missingFields.includes('birth_place') && <span className="text-[10px] ml-1 font-bold bg-rose-100 px-1.5 py-0.5 rounded-full uppercase tracking-tighter">Wajib Diisi</span>}
+            Tempat Lahir
           </label>
           <div className="mt-1 relative rounded-md shadow-sm">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -162,7 +224,7 @@ const PersonalDetailsCard = ({
 
         <div>
           <label htmlFor="birth-date" className={`block text-sm font-semibold mb-1 ${missingFields.includes('birth_date') ? 'text-rose-600' : 'text-gray-700'}`}>
-            Tanggal Lahir {missingFields.includes('birth_date') && <span className="text-[10px] ml-1 font-bold bg-rose-100 px-1.5 py-0.5 rounded-full uppercase tracking-tighter">Wajib Diisi</span>}
+            Tanggal Lahir
           </label>
           <div className="mt-1 relative rounded-md shadow-sm">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">

@@ -76,7 +76,7 @@ const DashboardLayout = () => {
     { name: 'Pengaturan', href: '/dashboard/user/settings', icon: Settings },
   ];
 
-  const currentNavigation = user?.role === 'ADMIN' ? adminNavigation : userNavigation;
+  const currentNavigation = user?.role?.toUpperCase() === 'ADMIN' ? adminNavigation : userNavigation;
 
   const handleLogout = () => {
     logout();
@@ -108,7 +108,7 @@ const DashboardLayout = () => {
           <Link to="/" className="flex items-center justify-center h-full">
             {isSidebarOpen ? (
               <span className="text-2xl font-bold text-blue-600">
-                KARIR<span className={clsx("text-xs text-gray-500 font-normal ml-1 transition-all duration-300", !isSidebarOpen && "opacity-0 w-0")}>{user?.role === 'ADMIN' ? 'Admin' : 'User'}</span>
+                KARIR<span className={clsx("text-xs text-gray-500 font-normal ml-1 transition-all duration-300", !isSidebarOpen && "opacity-0 w-0")}>{user?.role?.toUpperCase() === 'ADMIN' ? 'Admin' : 'User'}</span>
               </span>
             ) : (
               <Briefcase className="w-6 h-6 text-blue-600" />
@@ -207,7 +207,16 @@ const DashboardLayout = () => {
                 {user?.name}
               </span>
               {user?.photo ? (
-                <img src={`http://${window.location.hostname}:8000${user.photo}`} alt="Profile" className="w-8 h-8 rounded-full object-cover ring-2 ring-white shadow-sm" />
+                <img
+                  src={user.photo.startsWith('http') ? user.photo : `${window.API_BASE_URL}${user.photo}`}
+                  alt="Profile"
+                  key={user.photo} // Force re-render on photo change
+                  className="w-8 h-8 rounded-full object-cover ring-2 ring-white shadow-sm"
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = "https://ui-avatars.com/api/?name=" + (user?.name || 'U') + "&background=DBEAFE&color=2563EB&bold=true";
+                  }}
+                />
               ) : (
                 <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-xs ring-2 ring-white shadow-sm">
                   {user?.name?.charAt(0) || 'U'}
@@ -218,7 +227,7 @@ const DashboardLayout = () => {
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 overflow-y-auto bg-gray-50 p-4 sm:p-6 lg:p-8">
+        <main className="flex-1 overflow-y-auto bg-gray-50 p-4 sm:p-6 lg:p-8 pb-32 sm:pb-8">
           <div className="max-w-7xl mx-auto">
             <Outlet />
           </div>

@@ -17,7 +17,7 @@ const KtpAddressCard = ({
       <div className="space-y-4">
         <div>
           <label htmlFor="ktp-address" className={`block text-sm font-semibold mb-1 ${missingFields.includes('ktp_address') ? 'text-rose-600' : 'text-gray-700'}`}>
-            Alamat {missingFields.includes('ktp_address') && <span className="text-[10px] ml-1 font-bold bg-rose-100 px-1.5 py-0.5 rounded-full uppercase tracking-tighter">Wajib Diisi</span>}
+            Alamat
           </label>
           <div className="mt-1 relative rounded-md shadow-sm">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -41,7 +41,9 @@ const KtpAddressCard = ({
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label htmlFor="ktp-rt" className="block text-sm font-semibold text-gray-700">RT</label>
+            <label htmlFor="ktp-rt" className={`block text-sm font-semibold mb-1 ${missingFields.includes('ktp_rt') ? 'text-rose-600' : 'text-gray-700'}`}>
+              RT
+            </label>
             <div className="mt-1 relative rounded-md shadow-sm">
               <input
                 type="text"
@@ -49,8 +51,8 @@ const KtpAddressCard = ({
                 id="ktp-rt"
                 maxLength="5"
                 className={`block w-full px-3 py-2 border rounded-lg transition-all duration-200 sm:text-sm ${isEditing
-                  ? "border-gray-300 bg-white focus:ring-blue-500 focus:border-blue-500"
-                  : "border-transparent bg-gray-50/30 text-gray-700 cursor-default"
+                  ? (missingFields.includes('ktp_rt') ? "border-rose-300 bg-rose-50/10 focus:ring-rose-500 focus:border-rose-500" : "border-gray-300 bg-white focus:ring-blue-500 focus:border-blue-500")
+                  : (missingFields.includes('ktp_rt') ? "border-rose-200 bg-rose-50/5 text-gray-700 cursor-default" : "border-transparent bg-gray-50/30 text-gray-700 cursor-default")
                   }`}
                 disabled={!isEditing}
                 placeholder="RT"
@@ -60,7 +62,9 @@ const KtpAddressCard = ({
             </div>
           </div>
           <div>
-            <label htmlFor="ktp-rw" className="block text-sm font-semibold text-gray-700">RW</label>
+            <label htmlFor="ktp-rw" className={`block text-sm font-semibold mb-1 ${missingFields.includes('ktp_rw') ? 'text-rose-600' : 'text-gray-700'}`}>
+              RW
+            </label>
             <div className="mt-1 relative rounded-md shadow-sm">
               <input
                 type="text"
@@ -68,8 +72,8 @@ const KtpAddressCard = ({
                 id="ktp-rw"
                 maxLength="5"
                 className={`block w-full px-3 py-2 border rounded-lg transition-all duration-200 sm:text-sm ${isEditing
-                  ? "border-gray-300 bg-white focus:ring-blue-500 focus:border-blue-500"
-                  : "border-transparent bg-gray-50/30 text-gray-700 cursor-default"
+                  ? (missingFields.includes('ktp_rw') ? "border-rose-300 bg-rose-50/10 focus:ring-rose-500 focus:border-rose-500" : "border-gray-300 bg-white focus:ring-blue-500 focus:border-blue-500")
+                  : (missingFields.includes('ktp_rw') ? "border-rose-200 bg-rose-50/5 text-gray-700 cursor-default" : "border-transparent bg-gray-50/30 text-gray-700 cursor-default")
                   }`}
                 disabled={!isEditing}
                 placeholder="RW"
@@ -81,7 +85,9 @@ const KtpAddressCard = ({
         </div>
 
         <div>
-          <label htmlFor="ktp-kelurahan" className="block text-sm font-semibold text-gray-700">Kelurahan</label>
+          <label htmlFor="ktp-kelurahan" className={`block text-sm font-semibold mb-1 ${missingFields.includes('ktp_kelurahan') ? 'text-rose-600' : 'text-gray-700'}`}>
+            Kelurahan
+          </label>
           <div className="mt-1 relative rounded-md shadow-sm">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <MapPin className="h-5 w-5 text-gray-400" />
@@ -91,8 +97,8 @@ const KtpAddressCard = ({
               name="ktp-kelurahan"
               id="ktp-kelurahan"
               className={`block w-full pl-10 pr-3 py-2 border rounded-lg transition-all duration-200 sm:text-sm ${isEditing
-                ? "border-gray-300 bg-white focus:ring-blue-500 focus:border-blue-500"
-                : "border-transparent bg-gray-50/30 text-gray-700 cursor-default"
+                ? (missingFields.includes('ktp_kelurahan') ? "border-rose-300 bg-rose-50/10 focus:ring-rose-500 focus:border-rose-500" : "border-gray-300 bg-white focus:ring-blue-500 focus:border-blue-500")
+                : (missingFields.includes('ktp_kelurahan') ? "border-rose-200 bg-rose-50/5 text-gray-700 cursor-default" : "border-transparent bg-gray-50/30 text-gray-700 cursor-default")
                 }`}
               disabled={!isEditing}
               placeholder="Kelurahan sesuai KTP"
@@ -103,7 +109,9 @@ const KtpAddressCard = ({
         </div>
 
         <div>
-          <label htmlFor="ktp-kecamatan" className="block text-sm font-semibold text-gray-700">Kecamatan</label>
+          <label htmlFor="ktp-kecamatan" className={`block text-sm font-semibold mb-1 ${missingFields.includes('ktp_kecamatan') ? 'text-rose-600' : 'text-gray-700'}`}>
+            Kecamatan
+          </label>
           <div className="mt-1 relative rounded-md shadow-sm">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <MapPin className="h-5 w-5 text-gray-400" />
@@ -113,8 +121,8 @@ const KtpAddressCard = ({
               name="ktp-kecamatan"
               id="ktp-kecamatan"
               className={`block w-full pl-10 pr-3 py-2 border rounded-lg transition-all duration-200 sm:text-sm ${isEditing
-                ? "border-gray-300 bg-white focus:ring-blue-500 focus:border-blue-500"
-                : "border-transparent bg-gray-50/30 text-gray-700 cursor-default"
+                ? (missingFields.includes('ktp_kecamatan') ? "border-rose-300 bg-rose-50/10 focus:ring-rose-500 focus:border-rose-500" : "border-gray-300 bg-white focus:ring-blue-500 focus:border-blue-500")
+                : (missingFields.includes('ktp_kecamatan') ? "border-rose-200 bg-rose-50/5 text-gray-700 cursor-default" : "border-transparent bg-gray-50/30 text-gray-700 cursor-default")
                 }`}
               disabled={!isEditing}
               placeholder="Kecamatan sesuai KTP"
@@ -128,7 +136,7 @@ const KtpAddressCard = ({
 
         <div>
           <label htmlFor="ktp-kabupaten" className={`block text-sm font-semibold mb-1 ${missingFields.includes('ktp_kabupaten') ? 'text-rose-600' : 'text-gray-700'}`}>
-            Kabupaten/Kota {missingFields.includes('ktp_kabupaten') && <span className="text-[10px] ml-1 font-bold bg-rose-100 px-1.5 py-0.5 rounded-full uppercase tracking-tighter">Wajib Diisi</span>}
+            Kabupaten/Kota
           </label>
           <div className="mt-1 relative rounded-md shadow-sm">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">

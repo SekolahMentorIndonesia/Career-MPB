@@ -24,7 +24,7 @@ class AuthMiddleware {
 
     public static function isAdmin() {
         $user = self::authenticate();
-        if ($user['role'] !== 'ADMIN') {
+        if (strtoupper($user['role']) !== 'ADMIN') {
             ResponseHelper::error("Forbidden: Admin access required", 403);
         }
         return $user;

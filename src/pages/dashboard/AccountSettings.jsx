@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
-    Mail, Phone, Lock, Camera, CheckCircle2,
-    AlertCircle, ShieldCheck, X, ArrowRight
+    Mail, Camera, CheckCircle2,
+    ShieldCheck, X
 } from 'lucide-react';
 import clsx from 'clsx';
 import { useAuth } from '../../hooks/useAuth';
@@ -20,13 +20,11 @@ const AccountSettings = () => {
     const [account, setAccount] = useState({
         email: user?.email || '',
         isEmailVerified: true, // Mocked for now, context should handle this
-        phone: user?.phone || '',
-        isPhoneVerified: !!user?.phone_verified_at,
     });
 
-    const [photoPreview, setPhotoPreview] = useState(user?.photo ? `http://${window.location.hostname}:8000${user.photo}` : null);
+    const [photoPreview, setPhotoPreview] = useState(user?.photo ? `${window.API_BASE_URL}${user.photo}` : null);
 
-    const API_URL = `http://${window.location.hostname}:8000/api`;
+    const API_URL = `${window.API_BASE_URL}/api`;
 
     // --- ACTIONS ---
     const handleFileUpload = async (e) => {
@@ -90,21 +88,9 @@ const AccountSettings = () => {
 
         if (force) setResendTimer(60);
 
-        // API Call to request OTP
+        // API Call to request OTP (Email only if implemented)
         try {
-            const endpoint = otpType === 'phone' ? '/user/request-phone-otp' : '/user/request-email-otp'; // assuming email endpoint exists or similar
-            // For now, based on UserController, only phone otp is explicit. 
-            if (otpType === 'phone') {
-                await fetch(`${API_URL}${endpoint}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify({ phone: account.phone })
-                });
-            }
-            // If email, logic would go here
+            // Logic for email OTP would go here
         } catch (error) {
             console.error("Error requesting OTP:", error);
         }
@@ -122,52 +108,8 @@ const AccountSettings = () => {
         }
     };
 
-    // Password Change State
-    const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
-    const [passwordData, setPasswordData] = useState({
-        current_password: '',
-        new_password: '',
-        confirm_password: ''
-    });
-
-    const handleChangePassword = async (e) => {
-        e.preventDefault();
-
-        if (passwordData.new_password !== passwordData.confirm_password) {
-            alert("Password baru dan konfirmasi tidak cocok");
-            return;
-        }
-
-        setIsSubmitting(true);
-        try {
-            const response = await fetch(`${API_URL}/user/change-password`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify(passwordData)
-            });
-            const result = await response.json();
-
-            if (result.status === 'success') {
-                alert("Password berhasil diubah");
-                setIsPasswordModalOpen(false);
-                setPasswordData({ current_password: '', new_password: '', confirm_password: '' });
-            } else {
-                alert(result.message || "Gagal mengubah password");
-            }
-        } catch (error) {
-            console.error("Change password error:", error);
-            alert("Terjadi kesalahan saat mengubah password");
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
-
     const verifyOtp = () => {
         if (otpType === 'email') setAccount(prev => ({ ...prev, isEmailVerified: true }));
-        if (otpType === 'phone') setAccount(prev => ({ ...prev, isPhoneVerified: true }));
         setIsOtpModalOpen(false);
         setOtpValue(['', '', '', '', '', '']);
         setResendTimer(0);
@@ -236,154 +178,30 @@ const AccountSettings = () => {
                     <SectionHeader title="Keamanan & Akses" icon={ShieldCheck} />
 
                     <div className="space-y-8">
-                        {/* EMAIL ROW */}
-                        <div className="space-y-2">
-                            <div className="flex items-center gap-2">
-                                <InputLabel label="Email Hubung" />
-                                {account.isEmailVerified ? (
-                                    <span className="flex items-center gap-1 px-2 py-0.5 bg-green-100 text-green-700 text-[10px] font-bold rounded-full border border-green-200">
-                                        <CheckCircle2 className="w-3 h-3" /> TERVERIFIKASI
-                                    </span>
-                                ) : (
-                                    <span className="px-2 py-0.5 bg-yellow-100 text-yellow-700 text-[10px] font-bold rounded-full border border-yellow-200">
-                                        BELUM DIVERIFIKASI
-                                    </span>
-                                )}
-                            </div>
-
-                            <div className="relative">
-                                <input
-                                    type="email" value={account.email} readOnly
-                                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border bg-gray-100 border-gray-200 text-gray-500 cursor-not-allowed outline-none"
-                                />
-                                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                                    <Lock className="w-4 h-4 text-gray-400" />
-                                </div>
-                            </div>
-                            <p className="text-xs text-gray-400 flex items-start gap-1.5 leading-relaxed">
-                                <AlertCircle className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
-                                <span>Email yang telah diverifikasi tidak dapat diubah demi keamanan akun.</span>
-                            </p>
-                        </div>
-
-                        {/* PHONE ROW */}
-                        <div className="space-y-2 pt-8 border-t border-gray-50">
-                            <div className="flex items-center gap-2">
-                                <InputLabel label="Nomor Telepon (WhatsApp)" />
-                                {account.isPhoneVerified && (
-                                    <span className="flex items-center gap-1 px-2 py-0.5 bg-green-100 text-green-700 text-[10px] font-bold rounded-full border border-green-200">
-                                        <CheckCircle2 className="w-3 h-3" /> TERVERIFIKASI
-                                    </span>
-                                )}
-                            </div>
-
-                            <div className="relative">
-                                <input
-                                    type="tel" value={account.phone || ''}
-                                    onChange={(e) => setAccount({ ...account, phone: e.target.value })}
-                                    disabled={account.isPhoneVerified}
-                                    className={clsx(
-                                        "w-full pl-10 pr-4 py-2.5 rounded-xl border transition-all outline-none",
-                                        account.isPhoneVerified
-                                            ? "bg-gray-100 border-gray-200 text-gray-500 cursor-not-allowed"
-                                            : "bg-gray-50 border-gray-300 focus:ring-2 focus:ring-blue-500/20"
-                                    )}
-                                    placeholder="Contoh: 0812XXXXXXXX"
-                                />
-                                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                                    {account.isPhoneVerified ? <Lock className="w-4 h-4 text-gray-400" /> : <Phone className="w-4 h-4 text-gray-400" />}
+                        <div className="space-y-6">
+                            {/* EMAIL ROW (READ ONLY) */}
+                            <div className="space-y-2">
+                                <InputLabel label="Email Terhubung" />
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 bg-gray-50 border border-gray-200 rounded-xl">
+                                    <div className="flex items-center gap-3 overflow-hidden">
+                                        <div className="p-2 bg-white rounded-lg border border-gray-100 shadow-sm text-blue-600 flex-shrink-0">
+                                            <Mail className="w-4 h-4" />
+                                        </div>
+                                        <span className="text-sm font-bold text-gray-700 truncate">{account.email}</span>
+                                    </div>
+                                    <div className="flex items-center self-start sm:self-auto gap-1.5 px-3 py-1 bg-green-50 border border-green-100 rounded-full flex-shrink-0">
+                                        <CheckCircle2 className="w-3.5 h-3.5 text-green-600" />
+                                        <span className="text-[10px] font-black text-green-700 uppercase tracking-tight">Terverifikasi</span>
+                                    </div>
                                 </div>
                             </div>
 
-                            {!account.isPhoneVerified && (
-                                <button
-                                    onClick={() => openOtp('phone')}
-                                    className="flex items-center gap-1.5 text-sm font-bold text-blue-600 hover:text-blue-700 transition-colors"
-                                >
-                                    Kirim Kode Verifikasi <ArrowRight className="w-4 h-4" />
-                                </button>
-                            )}
-                        </div>
-
-                        {/* PASSWORD SECTION */}
-                        <div className="pt-8 border-t border-gray-50">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <h3 className="text-base font-bold text-gray-800">Kata Sandi Akun</h3>
-                                    <p className="text-sm text-gray-400 mt-0.5">Disarankan ganti kata sandi secara berkala demi keamanan.</p>
-                                </div>
-                                <button
-                                    onClick={() => setIsPasswordModalOpen(true)}
-                                    className="flex items-center gap-2 px-5 py-2.5 bg-gray-50 border border-gray-200 text-gray-700 text-sm font-bold rounded-xl hover:bg-gray-100 transition-all"
-                                >
-                                    <Lock className="w-4 h-4" /> Ubah Password
-                                </button>
-                            </div>
+                            {/* PHONE ROW */}
                         </div>
                     </div>
                 </div>
             </section>
 
-            {/* --- PASSWORD CHANGE MODAL --- */}
-            {isPasswordModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm animate-in fade-in duration-300">
-                    <div className="bg-white w-full max-w-md rounded-3xl shadow-2xl p-8 animate-in zoom-in-95 duration-300">
-                        <div className="flex justify-between items-start mb-6">
-                            <div className="p-3 bg-blue-50 rounded-2xl">
-                                <Lock className="w-8 h-8 text-blue-600" />
-                            </div>
-                            <button onClick={() => setIsPasswordModalOpen(false)} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
-                                <X className="w-6 h-6 text-gray-400" />
-                            </button>
-                        </div>
-
-                        <h2 className="text-2xl font-black text-gray-900 uppercase tracking-tight mb-6">Ubah Password</h2>
-
-                        <form onSubmit={handleChangePassword} className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-bold text-gray-700 mb-1">Password Saat Ini</label>
-                                <input
-                                    type="password"
-                                    required
-                                    value={passwordData.current_password}
-                                    onChange={(e) => setPasswordData({ ...passwordData, current_password: e.target.value })}
-                                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-bold text-gray-700 mb-1">Password Baru</label>
-                                <input
-                                    type="password"
-                                    required
-                                    minLength={6}
-                                    value={passwordData.new_password}
-                                    onChange={(e) => setPasswordData({ ...passwordData, new_password: e.target.value })}
-                                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-bold text-gray-700 mb-1">Konfirmasi Password Baru</label>
-                                <input
-                                    type="password"
-                                    required
-                                    minLength={6}
-                                    value={passwordData.confirm_password}
-                                    onChange={(e) => setPasswordData({ ...passwordData, confirm_password: e.target.value })}
-                                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
-                                />
-                            </div>
-
-                            <button
-                                type="submit"
-                                disabled={isSubmitting}
-                                className="w-full py-4 bg-blue-600 text-white font-black rounded-2xl shadow-xl shadow-blue-500/20 hover:bg-blue-700 hover:-translate-y-1 active:translate-y-0 transition-all mt-4"
-                            >
-                                {isSubmitting ? 'Menyimpan...' : 'SIMPAN PASSWORD BARU'}
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            )}
 
             {/* --- OTP MODAL --- */}
             {isOtpModalOpen && (
@@ -401,7 +219,7 @@ const AccountSettings = () => {
                         <h2 className="text-2xl font-black text-gray-900 uppercase tracking-tight">Verifikasi OTP</h2>
                         <p className="text-gray-500 mt-2 text-sm leading-relaxed">
                             Masukkan 6 digit kode yang kami kirimkan ke
-                            <span className="font-bold text-gray-800"> {otpType === 'email' ? account.email : account.phone || '08123456789'}</span>
+                            <span className="font-bold text-gray-800"> {otpType === 'email' ? account.email : (user?.phone || '08123456789')}</span>
                         </p>
 
                         <div className="flex justify-between gap-2 mt-8">

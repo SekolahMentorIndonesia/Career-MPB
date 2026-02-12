@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Camera, Loader2, Save, User as UserIcon, Phone, Mail } from 'lucide-react';
+import { Camera, Loader2, Save, User as UserIcon, Phone, Mail, Lock as LockIcon, Trash2 } from 'lucide-react';
 import Notification from '../../components/Notification';
+import ConfirmationModal from '../../components/ConfirmationModal';
+import { useAuth } from '../../hooks/useAuth';
 
 const AdminProfile = () => {
+  const { updateUser } = useAuth();
   const [profile, setProfile] = useState({
     name: '',
     email: '',
@@ -14,8 +17,9 @@ const AdminProfile = () => {
   const [notification, setNotification] = useState(null);
   const [photoFile, setPhotoFile] = useState(null);
   const [photoPreview, setPhotoPreview] = useState(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
-  const backendUrl = `http://${window.location.hostname}:8000`;
+  const backendUrl = `${window.API_BASE_URL}`;
 
   useEffect(() => {
     fetchProfile();
@@ -36,6 +40,8 @@ const AdminProfile = () => {
           phone: result.data.phone || '',
           photo: result.data.photo || ''
         });
+        // Sync context on load just in case
+        updateUser(result.data);
       }
     } catch (error) {
       console.error('Error fetching profile:', error);
@@ -101,18 +107,65 @@ const AdminProfile = () => {
         body: JSON.stringify({
           name: profile.name,
           email: profile.email,
-          phone: profile.phone
+          phone: profile.phone,
+          photo: currentPhoto
         })
       });
 
       const result = await response.json();
       if (result.success) {
         showNotification('success', 'Berhasil', 'Profil Anda telah diperbarui.');
+
+        const newProfileData = {
+          name: profile.name,
+          email: profile.email,
+          phone: profile.phone,
+          photo: currentPhoto
+        };
+
         setProfile(prev => ({ ...prev, photo: currentPhoto }));
         setPhotoFile(null);
         setPhotoPreview(null);
+
+        // Update Global Context
+        updateUser(newProfileData);
+
       } else {
         throw new Error(result.message || 'Gagal memperbarui profil');
+      }
+    } catch (error) {
+      showNotification('error', 'Gagal', error.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDeletePhoto = () => {
+    setShowDeleteConfirm(true);
+  };
+
+  const confirmDeletePhoto = async () => {
+    setShowDeleteConfirm(false);
+
+    setSaving(true);
+    try {
+      const response = await fetch(`${backendUrl}/api/user/upload-photo`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      const result = await response.json();
+
+      if (result.success) {
+        showNotification('success', 'Berhasil', 'Foto profil telah dihapus.');
+        const newProfileData = { ...profile, photo: null };
+        setProfile(prev => ({ ...prev, photo: null }));
+        setPhotoFile(null);
+        setPhotoPreview(null);
+        updateUser(newProfileData);
+      } else {
+        throw new Error(result.message || 'Gagal menghapus foto');
       }
     } catch (error) {
       showNotification('error', 'Gagal', error.message);
@@ -139,6 +192,17 @@ const AdminProfile = () => {
           onClose={() => setNotification(null)}
         />
       )}
+
+      <ConfirmationModal
+        isOpen={showDeleteConfirm}
+        title="Hapus Foto Profil"
+        message="Apakah Anda yakin ingin menghapus foto profil Anda? Tindakan ini tidak dapat dibatalkan."
+        onConfirm={confirmDeletePhoto}
+        onCancel={() => setShowDeleteConfirm(false)}
+        confirmText="Ya, Hapus"
+        cancelText="Batal"
+        type="danger"
+      />
 
       <div className="mb-8">
         <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">Profil Admin</h1>
@@ -171,9 +235,18 @@ const AdminProfile = () => {
 
             <div className="text-center sm:text-left">
               <h3 className="text-lg font-bold text-gray-900 mb-1">Pas Foto Admin</h3>
-              <p className="text-xs text-gray-500 font-medium max-w-xs">
+              <p className="text-xs text-gray-500 font-medium max-w-xs mb-2">
                 Gunakan foto formal profesional. Format JPG/PNG, maks. 2MB.
               </p>
+              {(profile.photo || photoPreview) && (
+                <button
+                  type="button"
+                  onClick={handleDeletePhoto}
+                  className="text-xs text-red-500 hover:text-red-700 font-bold flex items-center gap-1 transition-colors px-2 py-1 rounded hover:bg-red-50"
+                >
+                  <Trash2 className="w-3.5 h-3.5" /> Hapus Foto
+                </button>
+              )}
             </div>
           </div>
 
@@ -200,37 +273,43 @@ const AdminProfile = () => {
             <div className="space-y-2">
               <label className="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">Alamat Email</label>
               <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-blue-500 transition-colors">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400">
                   <Mail className="w-4 h-4" />
                 </div>
                 <input
                   type="email"
                   name="email"
                   value={profile.email}
-                  onChange={handleInputChange}
-                  placeholder="admin@example.com"
-                  className="w-full pl-11 pr-4 py-3 bg-gray-50 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-2xl text-sm font-bold text-gray-900 outline-none transition-all"
-                  required
+                  readOnly
+                  disabled
+                  className="w-full pl-11 pr-4 py-3 bg-gray-200 border-2 border-transparent rounded-2xl text-sm font-bold text-gray-500 outline-none cursor-not-allowed select-none"
                 />
+                <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none text-gray-400">
+                  <LockIcon className="w-4 h-4" />
+                </div>
               </div>
+              <p className="text-[10px] text-red-400 font-medium ml-1">*Hanya dapat diubah melalui Database</p>
             </div>
 
             <div className="space-y-2">
               <label className="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">Nomor WhatsApp</label>
               <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-blue-500 transition-colors">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400">
                   <Phone className="w-4 h-4" />
                 </div>
                 <input
                   type="text"
                   name="phone"
                   value={profile.phone}
-                  onChange={handleInputChange}
-                  placeholder="081234567890"
-                  className="w-full pl-11 pr-4 py-3 bg-gray-50 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-2xl text-sm font-bold text-gray-900 outline-none transition-all"
-                  required
+                  readOnly
+                  disabled
+                  className="w-full pl-11 pr-4 py-3 bg-gray-200 border-2 border-transparent rounded-2xl text-sm font-bold text-gray-500 outline-none cursor-not-allowed select-none"
                 />
+                <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none text-gray-400">
+                  <LockIcon className="w-4 h-4" />
+                </div>
               </div>
+              <p className="text-[10px] text-red-400 font-medium ml-1">*Hanya dapat diubah melalui Database</p>
             </div>
           </div>
 

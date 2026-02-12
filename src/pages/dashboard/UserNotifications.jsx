@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Bell, Loader2, CheckCircle, Clock } from 'lucide-react';
+import { Bell, Loader2, CheckCircle, Clock, Trash2 } from 'lucide-react';
 
 const UserNotifications = () => {
   const [notifications, setNotifications] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedNotification, setSelectedNotification] = useState(null);
 
   useEffect(() => {
     fetchNotifications();
@@ -12,7 +13,7 @@ const UserNotifications = () => {
   const fetchNotifications = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch(`http://${window.location.hostname}:8000/api/notifications`, {
+      const response = await fetch(`${window.API_BASE_URL}/api/notifications`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
@@ -30,7 +31,7 @@ const UserNotifications = () => {
 
   const markAsRead = async (id) => {
     try {
-      await fetch(`http://${window.location.hostname}:8000/api/notifications/mark-read`, {
+      await fetch(`${window.API_BASE_URL}/api/notifications/mark-read`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -44,8 +45,6 @@ const UserNotifications = () => {
     }
   };
 
-  const [selectedNotification, setSelectedNotification] = useState(null);
-
   const handleNotificationClick = (notif) => {
     setSelectedNotification(notif);
     if (!notif.is_read) {
@@ -56,6 +55,7 @@ const UserNotifications = () => {
   const closeModal = () => {
     setSelectedNotification(null);
   };
+
 
   return (
     <div className="p-6">
@@ -95,9 +95,11 @@ const UserNotifications = () => {
                     </p>
                     <p className="text-xs text-gray-400 mt-1 line-clamp-1">{notif.message}</p>
                   </div>
-                  <span className="text-[10px] text-gray-400 uppercase font-bold tracking-wider whitespace-nowrap ml-2">
-                    {new Date(notif.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
-                  </span>
+                  <div className="flex flex-col items-end gap-2">
+                    <span className="text-[10px] text-gray-400 uppercase font-bold tracking-wider whitespace-nowrap ml-2">
+                      {new Date(notif.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -131,10 +133,10 @@ const UserNotifications = () => {
                 Diterima pada {new Date(selectedNotification.created_at).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
               </div>
             </div>
-            <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+            <div className="bg-gray-50 px-4 py-3 sm:px-6 flex flex-row-reverse gap-2">
               <button
                 type="button"
-                className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm"
+                className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:w-auto sm:text-sm"
                 onClick={closeModal}
               >
                 Tutup

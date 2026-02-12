@@ -46,8 +46,8 @@ const DateRangeInput = ({ label, startValue, onStartChange, endValue, onEndChang
   </div>
 );
 
-const jobTypes = ['Fulltime', 'Parttime', 'Contract', 'Internship', 'Magang/PKL'];
-const targetAudiences = ['Umum (Semua Jenjang)', 'Fresh Graduate', 'Experienced'];
+const jobTypes = ['Fulltime', 'Parttime', 'Contract', 'Magang/PKL'];
+const targetAudiences = ['Umum (Semua Jenjang)', 'Fresh Graduate', 'Experienced', 'Magang/PKL'];
 
 const AdminManageJobs = () => {
   const { showNotification } = useNotification();
@@ -81,7 +81,7 @@ const AdminManageJobs = () => {
   const fetchJobs = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch(`http://${window.location.hostname}:8000/api/jobs`, {
+      const response = await fetch(`${window.API_BASE_URL}/api/jobs`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
@@ -145,7 +145,7 @@ const AdminManageJobs = () => {
     if (!jobToDelete) return;
 
     try {
-      const response = await fetch(`http://${window.location.hostname}:8000/api/jobs/${jobToDelete}`, {
+      const response = await fetch(`${window.API_BASE_URL}/api/jobs/${jobToDelete}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -190,8 +190,8 @@ const AdminManageJobs = () => {
     };
 
     const url = editingJob
-      ? `http://${window.location.hostname}:8000/api/jobs/${editingJob.id}`
-      : `http://${window.location.hostname}:8000/api/jobs`;
+      ? `${window.API_BASE_URL}/api/jobs/${editingJob.id}`
+      : `${window.API_BASE_URL}/api/jobs`;
 
     const method = editingJob ? 'PUT' : 'POST';
 
@@ -236,8 +236,9 @@ const AdminManageJobs = () => {
         </button>
       </div>
 
-      <div className="bg-white shadow-md rounded-lg p-6">
-        <div className="overflow-x-auto">
+      <div className="bg-white shadow-md rounded-lg overflow-hidden">
+        {/* DESKTOP TABLE */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
@@ -247,13 +248,13 @@ const AdminManageJobs = () => {
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Perusahaan
                 </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Tipe
                 </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Periode Daftar
                 </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Status
                 </th>
                 <th scope="col" className="relative px-6 py-3">
@@ -262,7 +263,6 @@ const AdminManageJobs = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {/* Placeholder for no jobs */}
               {isLoading ? (
                 <tr>
                   <td colSpan="6" className="px-6 py-12 text-center text-gray-500">Memuat data...</td>
@@ -273,7 +273,6 @@ const AdminManageJobs = () => {
                     <div className="flex flex-col items-center justify-center">
                       <Briefcase className="h-12 w-12 text-gray-400 mb-3" />
                       <p className="text-lg font-medium text-gray-700">Belum ada lowongan dibuat</p>
-                      <p className="text-sm text-gray-500">Silakan buat lowongan baru untuk memulai proses rekrutmen.</p>
                     </div>
                   </td>
                 </tr>
@@ -287,24 +286,24 @@ const AdminManageJobs = () => {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-600">{j.company}</div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap hidden md:table-cell">
+                    <td className="px-6 py-4 whitespace-nowrap">
                       <span className={clsx(
                         "px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider",
                         j.type === 'Fulltime' ? 'bg-indigo-100 text-indigo-700' :
-                          j.type === 'Internship' ? 'bg-orange-100 text-orange-700' :
+                          j.type === 'Magang/PKL' ? 'bg-orange-100 text-orange-700' :
                             'bg-gray-100 text-gray-700'
                       )}>
                         {j.type}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap hidden lg:table-cell">
+                    <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-xs text-gray-600 font-medium">
                         {j.registration_start_date ? new Date(j.registration_start_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }) : '-'}
                         {' - '}
                         {j.registration_end_date ? new Date(j.registration_end_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '-'}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap hidden md:table-cell">
+                    <td className="px-6 py-4 whitespace-nowrap">
                       <span className="flex items-center gap-1.5 text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-md w-fit">
                         <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                         Aktif
@@ -315,14 +314,12 @@ const AdminManageJobs = () => {
                         <button
                           onClick={() => handleEditJob(j)}
                           className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                          title="Edit"
                         >
                           <Pencil className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => openDeleteModal(j.id)}
                           className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                          title="Hapus"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -333,6 +330,73 @@ const AdminManageJobs = () => {
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* MOBILE CARDS */}
+        <div className="md:hidden divide-y divide-gray-100">
+          {isLoading ? (
+            <div className="p-8 text-center text-gray-500">Memuat data...</div>
+          ) : jobs.length === 0 ? (
+            <div className="p-8 text-center text-gray-500">
+              <Briefcase className="h-10 w-10 text-gray-300 mx-auto mb-2" />
+              <p className="text-sm font-bold">Belum ada lowongan</p>
+            </div>
+          ) : (
+            jobs.map((j) => (
+              <div key={j.id} className="p-5 space-y-4">
+                <div className="flex justify-between items-start">
+                  <div className="space-y-1">
+                    <h3 className="text-sm font-black text-gray-900 leading-tight">{j.title}</h3>
+                    <p className="text-xs text-gray-500 flex items-center gap-1">
+                      <Building2 className="w-3 h-3" /> {j.company}
+                    </p>
+                    <p className="text-xs text-gray-400 flex items-center gap-1">
+                      <MapPin className="w-3 h-3" /> {j.location}
+                    </p>
+                  </div>
+                  <div className="flex flex-col items-end gap-2">
+                    <span className={clsx(
+                      "px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider",
+                      j.type === 'Fulltime' ? 'bg-indigo-100 text-indigo-700' :
+                        j.type === 'Magang/PKL' ? 'bg-orange-100 text-orange-700' :
+                          'bg-gray-100 text-gray-700'
+                    )}>
+                      {j.type}
+                    </span>
+                    <span className="flex items-center gap-1 text-[9px] font-bold text-emerald-600">
+                      <span className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse"></span>
+                      Aktif
+                    </span>
+                  </div>
+                </div>
+
+                <div className="bg-gray-50 rounded-xl p-3 flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Periode Pendaftaran</p>
+                    <p className="text-xs font-bold text-gray-700">
+                      {j.registration_start_date ? new Date(j.registration_start_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }) : '-'}
+                      {' - '}
+                      {j.registration_end_date ? new Date(j.registration_end_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '-'}
+                    </p>
+                  </div>
+                  <div className="flex gap-1.5">
+                    <button
+                      onClick={() => handleEditJob(j)}
+                      className="p-2 bg-white text-blue-600 border border-blue-100 rounded-lg shadow-sm active:scale-95 transition-all"
+                    >
+                      <Pencil className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      onClick={() => openDeleteModal(j.id)}
+                      className="p-2 bg-white text-red-600 border border-red-100 rounded-lg shadow-sm active:scale-95 transition-all"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
 

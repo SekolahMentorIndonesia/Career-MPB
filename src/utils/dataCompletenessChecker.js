@@ -4,10 +4,10 @@ const checkDataCompleteness = (user) => {
   // Fields that determine profile completeness
   const profileFields = [
     'name', 'phone', 'nik', 'religion', 'height', 'weight',
-    'birth_place', 'birth_date', 'ktp_address', 'ktp_kelurahan',
-    'ktp_kecamatan', 'ktp_city', 'ktp_kabupaten', 'domicile_address',
-    'domicile_kelurahan', 'domicile_kecamatan', 'domicile_city',
-    'domicile_kabupaten', 'last_education', 'major', 'gpa', 'skills'
+    'birth_place', 'birth_date', 'ktp_address', 'ktp_rt', 'ktp_rw', 'ktp_kelurahan',
+    'ktp_kecamatan', 'ktp_kabupaten', 'domicile_address', 'domicile_rt', 'domicile_rw',
+    'domicile_kelurahan', 'domicile_kecamatan', 'domicile_kabupaten',
+    'last_education', 'major', 'gpa', 'skills'
   ];
 
   const filledFields = profileFields.filter(field => {

@@ -1,19 +1,18 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import { Search, MapPin, ChevronDown, Briefcase, Clock, DollarSign, Filter, Loader2, ArrowRight } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import clsx from 'clsx';
+import { Link } from 'react-router-dom';
 import { useNotification } from '../context/NotificationContext';
-import ConfirmationModal from './ConfirmationModal';
+import { AuthContext } from '../context/AuthContext';
 
 const JobSearchSection = () => {
-  const navigate = useNavigate();
+  const { user } = useContext(AuthContext);
   const { showNotification } = useNotification();
   const [searchTerm, setSearchTerm] = useState('');
   const [locationFilter, setLocationFilter] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
   const [jobs, setJobs] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
-  const [pendingJobId, setPendingJobId] = useState(null);
 
   useEffect(() => {
     fetchJobs();
@@ -22,7 +21,7 @@ const JobSearchSection = () => {
   const fetchJobs = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch(`http://${window.location.hostname}:8000/api/jobs`);
+      const response = await fetch(`${window.API_BASE_URL}/api/jobs`);
       const data = await response.json();
       if (data.success) {
         setJobs(data.data);
@@ -31,48 +30,6 @@ const JobSearchSection = () => {
       console.error('Error fetching jobs:', error);
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const handleApply = async (jobId) => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      showNotification('info', 'Login Diperlukan', 'Silakan login terlebih dahulu untuk melamar pekerjaan ini.');
-      navigate('/login');
-      return;
-    }
-
-    setPendingJobId(jobId);
-    setIsApplyModalOpen(true);
-  };
-
-  const confirmApply = async () => {
-    if (!pendingJobId) return;
-    const token = localStorage.getItem('token');
-
-    try {
-      const response = await fetch(`http://${window.location.hostname}:8000/api/applications`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ job_id: pendingJobId })
-      });
-
-      const data = await response.json();
-      if (data.success) {
-        showNotification('success', 'Lamaran Terkirim!', 'Terima kasih! Lamaran Anda berhasil terkirim dan akan segera kami proses.');
-        navigate('/dashboard/user/applications');
-      } else {
-        showNotification('error', 'Pengiriman Gagal', data.message || 'Gagal mengirim lamaran');
-      }
-    } catch (error) {
-      console.error('Error applying for job:', error);
-      showNotification('error', 'Kesalahan Sistem', 'Terjadi kesalahan koneksi. Silakan coba beberapa saat lagi.');
-    } finally {
-      setIsApplyModalOpen(false);
-      setPendingJobId(null);
     }
   };
 
@@ -185,54 +142,61 @@ const JobSearchSection = () => {
         ) : filteredJobs.length > 0 ? (
           <div className="grid gap-6">
             {filteredJobs.map((job) => (
-              <div key={job.id} className="bg-white border rounded-xl p-6 hover:shadow-md transition-shadow flex flex-col md:flex-row md:items-center justify-between gap-4 group">
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3">
-                    <h3 className="text-xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors">{job.title}</h3>
-                    <div className="flex items-center gap-2">
-                      <span className="px-2.5 py-0.5 bg-blue-50 text-blue-700 text-xs font-medium rounded-full border border-blue-100">
-                        {job.company}
-                      </span>
-                      <span className={`px-2.5 py-0.5 text-xs font-bold rounded-full border border-opacity-50 ${getJobStatus(job).color}`}>
-                        {getJobStatus(job).label}
-                      </span>
-                    </div>
+              <div key={job.id} className="bg-white border border-gray-100 rounded-2xl p-5 sm:p-6 hover:shadow-xl hover:shadow-blue-500/5 transition-all flex flex-col md:flex-row md:items-center justify-between gap-6 group relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-1.5 h-full bg-blue-500 transform -translate-x-full group-hover:translate-x-0 transition-transform"></div>
+
+                <div className="flex-1">
+                  <div className="flex flex-wrap items-center gap-3 mb-3">
+                    <span className={clsx(
+                      "px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider",
+                      job.type === 'Full-time' ? "bg-blue-50 text-blue-600" :
+                        job.type === 'Part-time' ? "bg-purple-50 text-purple-600" :
+                          "bg-orange-50 text-orange-600"
+                    )}>
+                      {job.type}
+                    </span>
+                    <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border border-opacity-50 ${getJobStatus(job).color}`}>
+                      {getJobStatus(job).label}
+                    </span>
                   </div>
 
-                  <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-gray-500">
-                    <span className="flex items-center gap-1.5">
-                      <MapPin className="w-4 h-4 text-gray-400" /> {job.location}
-                    </span>
-                    <span className="flex items-center gap-1.5">
-                      <Clock className="w-4 h-4 text-gray-400" /> {job.type}
-                    </span>
-                    <span className="flex items-center gap-1.5">
-                      <Briefcase className="w-4 h-4 text-gray-400" /> {job.target_audience}
-                    </span>
+                  <h3 className="text-xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors mb-2">{job.title}</h3>
+
+                  <div className="flex flex-wrap items-center gap-y-2 gap-x-5 text-sm text-gray-500">
+                    <div className="flex items-center gap-1.5 font-medium">
+                      <MapPin className="w-4 h-4 text-gray-400" />
+                      {job.location}
+                    </div>
+                    {/* Salary removed */}
+                    <div className="flex items-center gap-1.5 font-medium">
+                      <Clock className="w-4 h-4 text-gray-400" />
+                      {job.type}
+                    </div>
                   </div>
                 </div>
 
-                <div className="flex gap-3">
+                <div className="flex flex-col sm:flex-row gap-3 pt-4 md:pt-0 border-t md:border-t-0 border-gray-50">
                   <Link
                     to={`/jobs/${job.id}/details`}
-                    className="inline-flex justify-center items-center px-6 py-2.5 border border-gray-200 text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 hover:border-gray-300 transition-all whitespace-nowrap"
+                    className="inline-flex items-center justify-center px-6 py-2.5 text-sm font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-xl transition-all"
                   >
                     Detail
                   </Link>
-                  <button
-                    onClick={() => handleApply(job.id)}
-                    disabled={!isJobOpen(job)}
-                    className={`inline-flex justify-center items-center px-6 py-2.5 border border-transparent text-sm font-bold rounded-lg text-white transition-all whitespace-nowrap shadow-lg ${isJobOpen(job)
-                      ? 'bg-blue-600 hover:bg-blue-700 shadow-blue-500/20'
-                      : 'bg-gray-300 cursor-not-allowed shadow-none'
-                      }`}
-                  >
-                    {isJobOpen(job) ? (
-                      <>Lamar Sekarang <ArrowRight className="ml-2 w-4 h-4" /></>
-                    ) : (
-                      'Pendaftaran Tutup'
-                    )}
-                  </button>
+                  {user?.role !== 'admin' && (
+                    <Link
+                      to={isJobOpen(job) ? `/apply/${job.id}` : '#'}
+                      className={`inline-flex justify-center items-center px-8 py-2.5 text-sm font-bold rounded-xl transition-all shadow-lg active:scale-95 ${isJobOpen(job)
+                        ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-blue-500/20'
+                        : 'bg-gray-100 text-gray-400 cursor-not-allowed shadow-none pointer-events-none'
+                        }`}
+                    >
+                      {isJobOpen(job) ? (
+                        <>Lamar Sekarang <ArrowRight className="ml-2 w-4 h-4" /></>
+                      ) : (
+                        'Pendaftaran Tutup'
+                      )}
+                    </Link>
+                  )}
                 </div>
               </div>
             ))}
@@ -255,18 +219,6 @@ const JobSearchSection = () => {
           </div>
         )}
       </div>
-      <ConfirmationModal
-        isOpen={isApplyModalOpen}
-        title="Lamar Pekerjaan Ini?"
-        message="Apakah Anda yakin ingin melamar posisi ini? Pastikan data profil dan dokumen Anda sudah lengkap."
-        onConfirm={confirmApply}
-        onCancel={() => {
-          setIsApplyModalOpen(false);
-          setPendingJobId(null);
-        }}
-        confirmText="Ya, Lamar"
-        cancelText="Batal"
-      />
     </section>
   );
 };

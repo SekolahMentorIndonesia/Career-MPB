@@ -8,31 +8,83 @@ import { useNotification } from '../../context/NotificationContext';
 const Apply = () => {
   const { jobId } = useParams();
   const { user } = useAuth();
-  const { addNotification } = useNotification();
+  const { showNotification } = useNotification();
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [applicationStatus, setApplicationStatus] = useState(null); // 'none', 'applied', 'rejected_cooldown'
+  const [cooldownMessage, setCooldownMessage] = useState('');
 
-  // Requirement status
-  const { percentage, isProfileComplete, isDocumentUploaded } = checkDataCompleteness(user);
+  const [fullUser, setFullUser] = useState(null);
+
+  // Requirement status - use fullUser if available, otherwise fallback to auth user
+  const { percentage, isProfileComplete, isDocumentUploaded } = checkDataCompleteness(fullUser || user);
   // Documents are now optional
   const canApply = isProfileComplete;
 
   useEffect(() => {
-    // Simulate loading to ensure user data is ready from context
-    const timer = setTimeout(() => {
-      setLoading(false);
-    }, 500);
-    return () => clearTimeout(timer);
-  }, [user]);
+    const fetchData = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const headers = { 'Authorization': `Bearer ${token}` };
+
+        // 0. Fetch Full User Profile (to ensure we have detailed fields like ktp_rt, etc.)
+        const profileResponse = await fetch(`${window.API_BASE_URL}/api/user/profile`, { headers });
+        const profileResult = await profileResponse.json();
+        if (profileResult.success) {
+          setFullUser(profileResult.data);
+        }
+
+        // 1. Fetch user applications to check status
+        const response = await fetch(`${window.API_BASE_URL}/api/user/applications`, { headers });
+        const result = await response.json();
+
+        if (result.success) {
+          const existingApp = result.data.find(app => app.job_id == jobId);
+
+          if (existingApp) {
+            if (existingApp.status === 'Ditolak') {
+              // Check cooldown
+              const rejectedAt = new Date(existingApp.rejected_at);
+              const now = new Date();
+              const diffMs = now - rejectedAt;
+              const cooldownMs = 24 * 60 * 60 * 1000; // 24 hours
+
+              if (diffMs < cooldownMs) {
+                setApplicationStatus('rejected_cooldown');
+                const remainingMs = cooldownMs - diffMs;
+                const hours = Math.floor(remainingMs / (1000 * 60 * 60));
+                const minutes = Math.floor((remainingMs % (1000 * 60 * 60)) / (1000 * 60));
+                setCooldownMessage(`Anda baru saja ditolak. Harap tunggu ${hours} jam ${minutes} menit lagi sebelum melamar kembali.`);
+              } else {
+                setApplicationStatus('none'); // Cooldown expired, can apply again
+              }
+            } else {
+              setApplicationStatus('applied');
+            }
+          } else {
+            setApplicationStatus('none');
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (user) {
+      fetchData();
+    }
+  }, [user, jobId]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!canApply) return;
+    if (!canApply || applicationStatus !== 'none') return;
 
     setIsSubmitting(true);
     try {
-      const response = await fetch(`http://${window.location.hostname}:8000/api/applications`, {
+      const response = await fetch(`${window.API_BASE_URL}/api/applications`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -44,12 +96,12 @@ const Apply = () => {
       const result = await response.json();
       if (result.success) {
         setSubmitted(true);
-        addNotification('Lamaran berhasil dikirim!', 'success');
+        showNotification('success', 'Berhasil', 'Lamaran berhasil dikirim!');
       } else {
-        addNotification(result.message || 'Gagal mengirim lamaran', 'error');
+        showNotification('error', 'Gagal', result.message || 'Gagal mengirim lamaran');
       }
     } catch (error) {
-      addNotification('Terjadi kesalahan koneksi', 'error');
+      showNotification('error', 'Kesalahan', 'Terjadi kesalahan koneksi');
     } finally {
       setIsSubmitting(false);
     }
@@ -161,15 +213,42 @@ const Apply = () => {
         </div>
       ) : (
         <form onSubmit={handleSubmit} className="bg-white shadow-xl rounded-3xl p-8 border border-gray-100 overflow-hidden relative">
-          <div className="mb-8 flex items-center gap-4 p-6 bg-blue-50 rounded-2xl border border-blue-100">
-            <div className="p-3 bg-blue-600 rounded-xl text-white">
-              <CheckCircle className="w-6 h-6" />
+
+          {applicationStatus === 'applied' && (
+            <div className="mb-8 flex items-center gap-4 p-6 bg-green-50 rounded-2xl border border-green-100">
+              <div className="p-3 bg-green-600 rounded-xl text-white">
+                <CheckCircle className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="font-bold text-green-900">Sudah Melamar</h3>
+                <p className="text-sm text-green-700">Anda sudah mengirimkan lamaran untuk posisi ini. Silakan cek status di dashboard.</p>
+              </div>
             </div>
-            <div>
-              <h3 className="font-bold text-blue-900">Profil & Dokumen Lengkap!</h3>
-              <p className="text-sm text-blue-700">Data Anda akan diteruskan ke tim rekrutmen kami.</p>
+          )}
+
+          {applicationStatus === 'rejected_cooldown' && (
+            <div className="mb-8 flex items-center gap-4 p-6 bg-red-50 rounded-2xl border border-red-100">
+              <div className="p-3 bg-red-600 rounded-xl text-white">
+                <AlertCircle className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="font-bold text-red-900">Belum Dapat Melamar Kembali</h3>
+                <p className="text-sm text-red-700">{cooldownMessage}</p>
+              </div>
             </div>
-          </div>
+          )}
+
+          {applicationStatus === 'none' && (
+            <div className="mb-8 flex items-center gap-4 p-6 bg-blue-50 rounded-2xl border border-blue-100">
+              <div className="p-3 bg-blue-600 rounded-xl text-white">
+                <CheckCircle className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="font-bold text-blue-900">Profil & Dokumen Lengkap!</h3>
+                <p className="text-sm text-blue-700">Data Anda akan diteruskan ke tim rekrutmen kami.</p>
+              </div>
+            </div>
+          )}
 
           <div className="space-y-6">
             <div className="p-6 rounded-2xl bg-gray-50 border border-gray-100 space-y-4">
@@ -198,15 +277,17 @@ const Apply = () => {
           <div className="mt-8 pt-6 border-t">
             <button
               type="submit"
-              disabled={isSubmitting}
-              className="w-full flex justify-center py-4 px-4 border border-transparent rounded-2xl shadow-lg shadow-blue-200 text-lg font-bold text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all disabled:opacity-50"
+              disabled={isSubmitting || applicationStatus !== 'none'}
+              className="w-full flex justify-center py-4 px-4 border border-transparent rounded-2xl shadow-lg shadow-blue-200 text-lg font-bold text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSubmitting ? (
                 <span className="flex items-center gap-3">
                   <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                   Memproses...
                 </span>
-              ) : "Kirim Lamaran Sekarang"}
+              ) : applicationStatus === 'applied' ? "Sudah Melamar" :
+                applicationStatus === 'rejected_cooldown' ? "Coba Lagi Nanti" :
+                  "Kirim Lamaran Sekarang"}
             </button>
           </div>
         </form>
@@ -214,5 +295,4 @@ const Apply = () => {
     </div>
   );
 };
-
 export default Apply;

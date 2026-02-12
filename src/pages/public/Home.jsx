@@ -1,8 +1,11 @@
+import { useContext } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, CheckCircle, Briefcase, Users, TrendingUp } from 'lucide-react';
 import JobSearchSection from '../../components/JobSearchSection';
+import { AuthContext } from '../../context/AuthContext';
 
 const Home = () => {
+  const { user } = useContext(AuthContext);
   return (
     <div className="space-y-20 pb-20">
 
@@ -30,12 +33,14 @@ const Home = () => {
               </p>
 
               <div className="mt-8 sm:max-w-lg sm:mx-auto sm:text-center lg:text-left lg:mx-0">
-                <Link
-                  to="/#karir-section"
-                  className="inline-flex items-center px-8 py-3.5 border border-transparent text-base font-bold rounded-lg text-white bg-blue-600 hover:bg-blue-700 md:text-lg transition-all shadow-lg hover:shadow-blue-500/30"
-                >
-                  Lihat Posisi Tersedia <ArrowRight className="ml-2 w-5 h-5" />
-                </Link>
+                {user?.role !== 'admin' && (
+                  <Link
+                    to="/#karir-section"
+                    className="inline-flex items-center px-8 py-3.5 border border-transparent text-base font-bold rounded-lg text-white bg-blue-600 hover:bg-blue-700 md:text-lg transition-all shadow-lg hover:shadow-blue-500/30"
+                  >
+                    Lihat Posisi Tersedia <ArrowRight className="ml-2 w-5 h-5" />
+                  </Link>
+                )}
               </div>
             </div>
 
@@ -119,12 +124,14 @@ const Home = () => {
               Kami tidak hanya mencari profesional berpengalaman. Kami juga membuka pintu bagi siswa SMK dan mahasiswa yang ingin belajar, berkembang, dan mendapatkan pengalaman dunia kerja yang sesungguhnya.
             </p>
 
-            <Link
-              to="/#karir-section"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-all hover:shadow-lg hover:shadow-blue-500/25"
-            >
-              Kirim Lamaran <ArrowRight className="w-5 h-5" />
-            </Link>
+            {user?.role !== 'admin' && (
+              <Link
+                to="/#karir-section"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-all hover:shadow-lg hover:shadow-blue-500/25"
+              >
+                Kirim Lamaran <ArrowRight className="w-5 h-5" />
+              </Link>
+            )}
           </div>
 
           <div className="w-full lg:w-[400px] relative z-10">

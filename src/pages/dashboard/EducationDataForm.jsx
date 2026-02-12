@@ -15,7 +15,7 @@ const EducationDataForm = ({
       <div className="space-y-4">
         <div>
           <label htmlFor="last-education" className={`block text-sm font-semibold mb-1 ${missingFields.includes('last_education') ? 'text-rose-600' : 'text-gray-700'}`}>
-            Pendidikan Terakhir {missingFields.includes('last_education') && <span className="text-[10px] ml-1 font-bold bg-rose-100 px-1.5 py-0.5 rounded-full uppercase tracking-tighter">Wajib Diisi</span>}
+            Pendidikan Terakhir
           </label>
           <div className="mt-1 relative rounded-md shadow-sm">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -49,7 +49,7 @@ const EducationDataForm = ({
 
         <div>
           <label htmlFor="major" className={`block text-sm font-semibold mb-1 ${missingFields.includes('major') ? 'text-rose-600' : 'text-gray-700'}`}>
-            Jurusan {missingFields.includes('major') && <span className="text-[10px] ml-1 font-bold bg-rose-100 px-1.5 py-0.5 rounded-full uppercase tracking-tighter">Wajib Diisi</span>}
+            Jurusan
           </label>
           <div className="mt-1 relative rounded-md shadow-sm">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -72,7 +72,9 @@ const EducationDataForm = ({
         </div>
 
         <div>
-          <label htmlFor="gpa" className="block text-sm font-medium text-gray-700">Nilai Akhir/IPK</label>
+          <label htmlFor="gpa" className={`block text-sm font-semibold mb-1 ${missingFields.includes('gpa') ? 'text-rose-600' : 'text-gray-700'}`}>
+            Nilai Akhir/IPK
+          </label>
           <div className="mt-1 relative rounded-md shadow-sm">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <BookOpen className="h-5 w-5 text-gray-400" />
@@ -82,8 +84,8 @@ const EducationDataForm = ({
               name="gpa"
               id="gpa"
               className={`block w-full pl-10 pr-3 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-all duration-200 ${isEditing
-                ? "border-gray-300 bg-white"
-                : "border-transparent bg-gray-50/30 text-gray-700 cursor-default"
+                ? (missingFields.includes('gpa') ? "border-rose-300 bg-rose-50/10 focus:ring-rose-500 focus:border-rose-500" : "border-gray-300 bg-white")
+                : (missingFields.includes('gpa') ? "border-rose-200 bg-rose-50/5 text-gray-700 cursor-default" : "border-transparent bg-gray-50/30 text-gray-700 cursor-default")
                 }`}
               disabled={!isEditing}
               placeholder="Contoh: 3.50"
@@ -94,7 +96,9 @@ const EducationDataForm = ({
         </div>
 
         <div>
-          <label htmlFor="skills" className="block text-sm font-medium text-gray-700">Keahlian</label>
+          <label htmlFor="skills" className={`block text-sm font-semibold mb-1 ${missingFields.includes('skills') ? 'text-rose-600' : 'text-gray-700'}`}>
+            Keahlian
+          </label>
           <div className="mt-1 relative rounded-md shadow-sm">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <BookOpen className="h-5 w-5 text-gray-400" />
@@ -104,8 +108,8 @@ const EducationDataForm = ({
               id="skills"
               rows="3"
               className={`block w-full pl-10 pr-3 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-all duration-200 ${isEditing
-                ? "border-gray-300 bg-white"
-                : "border-transparent bg-gray-50/30 text-gray-700 cursor-default"
+                ? (missingFields.includes('skills') ? "border-rose-300 bg-rose-50/10 focus:ring-rose-500 focus:border-rose-500" : "border-gray-300 bg-white")
+                : (missingFields.includes('skills') ? "border-rose-200 bg-rose-50/5 text-gray-700 cursor-default" : "border-transparent bg-gray-50/30 text-gray-700 cursor-default")
                 }`}
               disabled={!isEditing}
               placeholder="Sebutkan keahlian Anda"

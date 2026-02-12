@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Save, Camera, UserCircle } from 'lucide-react';
+import { Save, Camera, UserCircle, Trash2, User } from 'lucide-react';
+import ConfirmationModal from '../../components/ConfirmationModal';
 import PersonalDetailsCard from './PersonalDetailsCard';
 import KtpAddressCard from './KtpAddressCard';
 import DomicileAddressCard from '././DomicileAddressCard';
@@ -15,6 +16,7 @@ const UserProfile = () => {
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
   const [isEditing, setIsEditing] = useState(false);
   const [originalData, setOriginalData] = useState(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const showToast = (message, type = 'success') => {
     setToast({ show: true, message, type });
@@ -23,6 +25,10 @@ const UserProfile = () => {
 
   // Form States - Initialize name from context if available
   const [name, setName] = useState(user?.name || '');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [provider, setProvider] = useState('local');
+  const [phoneVerifiedAt, setPhoneVerifiedAt] = useState(null);
   const [domicile, setDomicile] = useState('');
   const [ktpAddress, setKtpAddress] = useState('');
   const [ktpRt, setKtpRt] = useState('');
@@ -48,7 +54,7 @@ const UserProfile = () => {
 
   const [missingMandatoryFields, setMissingMandatoryFields] = useState([]);
 
-  const API_URL = `http://${window.location.hostname}:8000/api`;
+  const API_URL = `${window.API_BASE_URL}/api`;
 
   React.useEffect(() => {
     const fetchProfile = async () => {
@@ -60,7 +66,11 @@ const UserProfile = () => {
         if (result.status === 'success') {
           const d = result.data;
           setName(d.name || '');
-          if (d.photo) setProfilePicturePreview(`http://${window.location.hostname}:8000${d.photo}`);
+          setEmail(d.email || '');
+          setPhone(d.phone || '');
+          setProvider(d.provider || 'local');
+          setPhoneVerifiedAt(d.phone_verified_at);
+          if (d.photo) setProfilePicturePreview(`${window.API_BASE_URL}${d.photo}`);
           setNik(d.nik || '');
           setReligion(d.religion || '');
           setHeight(d.height || '');
@@ -87,13 +97,19 @@ const UserProfile = () => {
           // Calculate missing mandatory fields
           const mandatory = [
             ['name', d.name], ['phone', d.phone], ['nik', d.nik],
+            ['religion', d.religion], ['height', d.height], ['weight', d.weight],
             ['birth_place', d.birth_place], ['birth_date', d.birth_date],
-            ['ktp_address', d.ktp_address], ['ktp_kabupaten', d.ktp_kabupaten || d.ktp_city],
-            ['last_education', d.last_education], ['major', d.major]
+            ['ktp_address', d.ktp_address], ['ktp_rt', d.ktp_rt], ['ktp_rw', d.ktp_rw],
+            ['ktp_kelurahan', d.ktp_kelurahan], ['ktp_kecamatan', d.ktp_kecamatan],
+            ['ktp_kabupaten', d.ktp_kabupaten || d.ktp_city],
+            ['domicile_address', d.domicile_address], ['domicile_rt', d.domicile_rt], ['domicile_rw', d.domicile_rw],
+            ['domicile_kelurahan', d.domicile_kelurahan], ['domicile_kecamatan', d.domicile_kecamatan],
+            ['domicile_kabupaten', d.domicile_kabupaten],
+            ['last_education', d.last_education], ['major', d.major], ['gpa', d.gpa], ['skills', d.skills]
           ];
           setMissingMandatoryFields(mandatory.filter(([_, v]) => !v).map(([k]) => k));
 
-          if (d.photo) setProfilePicturePreview(`http://${window.location.hostname}:8000${d.photo}`);
+          if (d.photo) setProfilePicturePreview(`${window.API_BASE_URL}${d.photo}`);
         } else if (response.status === 401) {
           logout();
         }
@@ -109,8 +125,50 @@ const UserProfile = () => {
   const handleProfilePictureChange = (e) => {
     const file = e.target.files[0];
     if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        showToast('Ukuran file maksimal 2MB', 'error');
+        return;
+      }
       setProfilePicture(file);
       setProfilePicturePreview(URL.createObjectURL(file));
+    }
+  };
+
+  const handleDeletePhoto = () => {
+    setShowDeleteConfirm(true);
+  };
+
+  const confirmDeletePhoto = async () => {
+    setShowDeleteConfirm(false);
+
+    setIsSubmitting(true);
+    try {
+      const response = await fetch(`${API_URL}/user/upload-photo`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const result = await response.json();
+
+      if (result.status === 'success') {
+        showToast('Foto profil berhasil dihapus', 'success');
+        setProfilePicture(null);
+        setProfilePicturePreview(null);
+
+        // Update global context
+        const userRes = await fetch(`${API_URL}/user/profile`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const userResult = await userRes.json();
+        if (userResult.status === 'success') {
+          updateUser(userResult.data);
+        }
+      } else {
+        throw new Error(result.message || 'Gagal menghapus foto');
+      }
+    } catch (error) {
+      showToast(error.message || 'Gagal menghapus foto', 'error');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -127,7 +185,7 @@ const UserProfile = () => {
           'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
-          name, nik, religion, height, weight, birth_place: birthPlace, birth_date: birthDate,
+          name, email, phone, nik, religion, height, weight, birth_place: birthPlace, birth_date: birthDate,
           ktp_address: ktpAddress, ktp_rt: ktpRt, ktp_rw: ktpRw, ktp_kelurahan: ktpKelurahan, ktp_kecamatan: ktpKecamatan, ktp_kabupaten: ktpKabupaten,
           domicile_address: domicile, domicile_rt: domicileRt, domicile_rw: domicileRw, domicile_kelurahan: domicileKelurahan, domicile_kecamatan: domicileKecamatan, domicile_kabupaten: domicileKabupaten,
           last_education: lastEducation, major, gpa, skills
@@ -176,6 +234,8 @@ const UserProfile = () => {
   const handleCancelEdit = () => {
     if (originalData) {
       setName(originalData.name);
+      setEmail(originalData.email);
+      setPhone(originalData.phone);
       setNik(originalData.nik);
       setReligion(originalData.religion);
       setHeight(originalData.height);
@@ -198,7 +258,7 @@ const UserProfile = () => {
       setMajor(originalData.major);
       setGpa(originalData.gpa);
       setSkills(originalData.skills);
-      setProfilePicturePreview(originalData.photo ? `http://${window.location.hostname}:8000${originalData.photo}` : null);
+      setProfilePicturePreview(originalData.photo ? `${window.API_BASE_URL}${originalData.photo}` : null);
     }
     setIsEditing(false);
     setProfilePicture(null);
@@ -206,7 +266,7 @@ const UserProfile = () => {
 
   const startEditing = () => {
     setOriginalData({
-      name, nik, religion, height, weight, birth_place: birthPlace, birth_date: birthDate,
+      name, email, phone, nik, religion, height, weight, birth_place: birthPlace, birth_date: birthDate,
       ktp_address: ktpAddress, ktp_rt: ktpRt, ktp_rw: ktpRw, ktp_kelurahan: ktpKelurahan, ktp_kecamatan: ktpKecamatan, ktp_kabupaten: ktpKabupaten,
       domicile_address: domicile, domicile_rt: domicileRt, domicile_rw: domicileRw, domicile_kelurahan: domicileKelurahan, domicile_kecamatan: domicileKecamatan, domicile_kabupaten: domicileKabupaten,
       last_education: lastEducation, major, gpa, skills
@@ -218,6 +278,17 @@ const UserProfile = () => {
 
   return (
     <div className="p-6 relative">
+      <ConfirmationModal
+        isOpen={showDeleteConfirm}
+        title="Hapus Foto Profil"
+        message="Apakah Anda yakin ingin menghapus foto profil Anda? Tindakan ini tidak dapat dibatalkan."
+        onConfirm={confirmDeletePhoto}
+        onCancel={() => setShowDeleteConfirm(false)}
+        confirmText="Ya, Hapus"
+        cancelText="Batal"
+        type="danger"
+      />
+
       {/* Custom Toast Notification */}
       {toast.show && (
         <div className={`fixed top-24 right-8 z-[100] transform transition-all duration-300 ${toast.show ? 'translate-x-0 opacity-100' : 'translate-x-10 opacity-0'}`}>
@@ -266,9 +337,53 @@ const UserProfile = () => {
       </div>
 
       <form id="profile-form" onSubmit={handleSubmit}>
+
+        {/* FOTO PROFIL CARD */}
+        <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+          <h2 className="text-xl font-bold text-gray-900 mb-4">FOTO PROFIL</h2>
+          <div className="flex flex-col sm:flex-row items-center gap-6">
+            <div className="relative group">
+              <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-gray-100 bg-gray-50 flex items-center justify-center">
+                {profilePicturePreview ? (
+                  <img src={profilePicturePreview} alt="Profile" className="w-full h-full object-cover" />
+                ) : (
+                  <User className="w-16 h-16 text-gray-300" />
+                )}
+                {isEditing && (
+                  <label className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-all cursor-pointer rounded-full">
+                    <Camera className="w-8 h-8 text-white mb-1" />
+                    <span className="text-[10px] text-white font-bold uppercase">Ubah</span>
+                    <input type="file" className="hidden" onChange={handleProfilePictureChange} accept="image/*" />
+                  </label>
+                )}
+              </div>
+            </div>
+
+            <div className="flex-1 text-center sm:text-left">
+              <p className="text-sm text-gray-600 mb-2">
+                Format JPG, PNG, atau WEBP. Maksimal 2MB.<br />
+                Wajib menggunakan foto formal/resmi.
+              </p>
+              {isEditing && profilePicturePreview && (
+                <button
+                  type="button"
+                  onClick={handleDeletePhoto}
+                  className="text-sm text-rose-600 hover:text-rose-700 font-bold flex items-center gap-2 justify-center sm:justify-start transition-colors"
+                >
+                  <Trash2 className="w-4 h-4" /> Hapus Foto
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+
         <PersonalDetailsCard
           isEditing={isEditing}
           name={name} setName={setName}
+          email={email} setEmail={setEmail}
+          phone={phone} setPhone={setPhone}
+          provider={provider}
+          phoneVerifiedAt={phoneVerifiedAt}
           nik={nik} setNik={setNik}
           religion={religion} setReligion={setReligion}
           height={height} setHeight={setHeight}
@@ -306,12 +421,11 @@ const UserProfile = () => {
           domicileKelurahan={domicileKelurahan} setDomicileKelurahan={setDomicileKelurahan}
           domicileKecamatan={domicileKecamatan} setDomicileKecamatan={setDomicileKecamatan}
           domicileKabupaten={domicileKabupaten} setDomicileKabupaten={setDomicileKabupaten}
+          missingFields={missingMandatoryFields}
         />
 
 
-        {isEditing && (
-          <p className="text-sm font-bold text-rose-500 mt-4">*Semua data wajib diisi sebelum melamar pekerjaan</p>
-        )}
+        {/* Removed tagline as per user request */}
       </form>
     </div>
   );

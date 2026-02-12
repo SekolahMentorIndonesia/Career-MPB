@@ -10,7 +10,7 @@ const AdminOverview = () => {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const response = await fetch(`http://${window.location.hostname}:8000/api/admin/dashboard-stats`, {
+        const response = await fetch(`${window.API_BASE_URL}/api/admin/dashboard-stats`, {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`
           }
@@ -37,8 +37,8 @@ const AdminOverview = () => {
       color: 'bg-blue-100 text-blue-600'
     },
     {
-      name: 'Sedang Psikotes',
-      stat: statsData?.in_psychotest || 0,
+      name: 'Sedang Proses',
+      stat: statsData?.in_progress || 0,
       icon: BrainCircuit,
       color: 'bg-yellow-100 text-yellow-600'
     },

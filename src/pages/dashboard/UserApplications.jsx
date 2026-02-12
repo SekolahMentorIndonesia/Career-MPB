@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import checkDataCompleteness from '../../utils/dataCompletenessChecker';
-import { Loader2, Briefcase } from 'lucide-react';
+import { Loader2, Briefcase, FileText, Award, User, CheckCircle } from 'lucide-react';
+
 
 const UserApplications = () => {
   const [applications, setApplications] = useState([]);
@@ -13,7 +14,7 @@ const UserApplications = () => {
   const fetchApplications = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch(`http://${window.location.hostname}:8000/api/user/applications`, {
+      const response = await fetch(`${window.API_BASE_URL}/api/user/applications`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
@@ -29,28 +30,38 @@ const UserApplications = () => {
     }
   };
 
-  const mapStatusToSteps = (status) => {
-    const steps = [
-      { step: 'Administrasi', icon: <FileText className="w-5 h-5" />, label: 'Seleksi Berkas', description: 'Review data diri dan dokumen pendukung' },
-      { step: 'Psikotes', icon: <Award className="w-5 h-5" />, label: 'Tes Kompetensi', description: 'Ujian psikotes dan teknis (Online/Offline)' },
-      { step: 'Interview', icon: <User className="w-5 h-5" />, label: 'Wawancara', description: 'Wawancara dengan tim HR dan User' },
-      { step: 'Hasil Akhir', icon: <CheckCircle className="w-5 h-5" />, label: 'Keputusan', description: 'Pengumuman hasil akhir rekrutmen' },
+  const mapStatusToSteps = (app) => {
+    const { status: globalStatus, stages: appStages } = app;
+    const defaultSteps = [
+      { step: 'Administrasi', icon: <FileText className="w-5 h-5" />, label: 'Seleksi Berkas' },
+      { step: 'Psikotes', icon: <Award className="w-5 h-5" />, label: 'Tes Kompetensi' },
+      { step: 'Interview', icon: <User className="w-5 h-5" />, label: 'Wawancara' },
+      { step: 'Final', icon: <CheckCircle className="w-5 h-5" />, label: 'Keputusan' },
     ];
 
-    let currentStepIndex = 0;
-    if (status === 'Administrasi') currentStepIndex = 0;
-    else if (status === 'Tes Psikotes' || status === 'Psikotes') currentStepIndex = 1;
-    else if (status === 'Interview') currentStepIndex = 2;
-    else if (status === 'Diterima' || status === 'Ditolak') currentStepIndex = 3;
+    if (!appStages || appStages.length === 0) {
+      // Fallback if stages data not available yet
+      return defaultSteps.map(s => ({ ...s, status: 'pending' }));
+    }
 
-    return steps.map((s, index) => {
+    return defaultSteps.map((s) => {
+      const stageData = appStages.find(stage => stage.name === s.step);
       let state = 'pending';
-      if (index < currentStepIndex) state = 'completed';
-      else if (index === currentStepIndex) {
-        if (status === 'Ditolak') state = 'rejected';
-        else if (status === 'Diterima') state = 'completed';
-        else state = 'in_progress';
+
+      if (stageData) {
+        if (stageData.status === 'passed') state = 'completed';
+        else if (stageData.status === 'rejected') state = 'rejected';
+        else if (stageData.status === 'locked') state = 'pending'; // visually pending/locked
+        else if (stageData.status === 'pending') {
+          // If global status matches this stage, show as in_progress
+          if (globalStatus === s.step || (s.step === 'Administrasi' && globalStatus === 'Seleksi Administrasi')) {
+            state = 'in_progress';
+          } else {
+            state = 'pending';
+          }
+        }
       }
+
       return { ...s, status: state };
     });
   };
@@ -66,6 +77,26 @@ const UserApplications = () => {
       default:
         return <span className="px-3 py-1 text-xs font-bold text-gray-400 bg-gray-50 rounded-lg">Menunggu</span>;
     }
+  };
+
+  const getCooldownInfo = (application) => {
+    if (application.status !== 'Ditolak' || !application.rejected_at) return null;
+
+    const rejectedAt = new Date(application.rejected_at);
+    const now = new Date();
+    const diff = now - rejectedAt; // ms
+    const cooldownMs = 24 * 60 * 60 * 1000;
+
+    if (diff >= cooldownMs) return { canApply: true, label: 'Dapat Melamar Kembali' };
+
+    const remaining = cooldownMs - diff;
+    const hours = Math.floor(remaining / (1000 * 60 * 60));
+    const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
+
+    return {
+      canApply: false,
+      label: `Dapat melamar lagi dalam ${hours} jam ${minutes} menit`
+    };
   };
 
   return (
@@ -110,46 +141,54 @@ const UserApplications = () => {
 
                 <div className="p-8">
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    {mapStatusToSteps(app.status).map((item, index) => (
-                      <div key={index} className="relative group">
-                        <div className="flex items-center gap-4 md:flex-col md:items-center md:text-center">
-                          <div className={`
-                            w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-500 z-10
-                            ${item.status === 'completed' ? 'bg-green-500 text-white shadow-lg shadow-green-100' :
-                              item.status === 'in_progress' ? 'bg-blue-600 text-white shadow-lg shadow-blue-200 animate-pulse' :
-                                item.status === 'rejected' ? 'bg-red-500 text-white shadow-lg shadow-red-100' :
-                                  'bg-gray-100 text-gray-400'}
-                          `}>
-                            {item.icon}
-                          </div>
+                    {(() => {
+                      const steps = mapStatusToSteps(app);
+                      return steps.map((item, index) => (
+                        <div key={index} className="relative group">
+                          <div className="flex items-center gap-4 md:flex-col md:items-center md:text-center">
+                            <div className={`
+                              w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-500 z-10
+                              ${item.status === 'completed' ? 'bg-green-500 text-white shadow-lg shadow-green-100' :
+                                item.status === 'in_progress' ? 'bg-blue-600 text-white shadow-lg shadow-blue-200 animate-pulse' :
+                                  item.status === 'rejected' ? 'bg-red-500 text-white shadow-lg shadow-red-100' :
+                                    'bg-gray-100 text-gray-400'}
+                            `}>
+                              {item.icon}
+                            </div>
 
-                          <div className="flex-1">
-                            <h3 className={`text-sm font-bold ${item.status === 'pending' ? 'text-gray-400' : 'text-gray-900'}`}>
-                              {item.step}
-                            </h3>
-                            <p className="text-[10px] text-gray-500 font-medium">
-                              {item.label}
-                            </p>
-                            <div className="mt-2 md:hidden">
-                              {getStatusBadge(item.status)}
+                            <div className="flex-1">
+                              <h3 className={`text-sm font-bold ${item.status === 'pending' ? 'text-gray-400' : 'text-gray-900'}`}>
+                                {item.step}
+                              </h3>
+                              <p className="text-[10px] text-gray-500 font-medium">
+                                {item.label}
+                              </p>
+                              <div className="mt-2 md:hidden">
+                                {getStatusBadge(item.status)}
+                              </div>
                             </div>
                           </div>
-                        </div>
 
-                        {/* Connection Line (Desktop) */}
-                        {index < 3 && (
-                          <div className="hidden md:block absolute top-6 left-[60%] w-[80%] h-0.5 bg-gray-100 -z-0">
-                            <div className={`h-full transition-all duration-1000 ${mapStatusToSteps(app.status)[index + 1].status !== 'pending' ? 'bg-green-500 w-full' : 'w-0'
-                              }`}></div>
-                          </div>
-                        )}
-                      </div>
-                    ))}
+                          {/* Connection Line (Desktop) */}
+                          {index < 3 && (
+                            <div className="hidden md:block absolute top-6 left-[60%] w-[80%] h-0.5 bg-gray-100 -z-0">
+                              <div className={`h-full transition-all duration-1000 ${item.status === 'completed' ? 'bg-green-500 w-full' : 'w-0'
+                                }`}></div>
+                            </div>
+                          )}
+                        </div>
+                      ));
+                    })()}
                   </div>
 
                   <div className="mt-8 pt-6 border-t border-gray-50 hidden md:flex justify-between items-center text-[10px] font-bold uppercase tracking-widest text-gray-400">
                     <span>Tahapan Rekrutmen</span>
-                    <span>Status: <span className={app.status === 'Ditolak' ? 'text-red-500' : 'text-blue-600'}>{app.status}</span></span>
+                    <div className="text-right">
+                      <span>Status: <span className={app.status === 'Ditolak' ? 'text-red-500' : 'text-blue-600'}>{app.status}</span></span>
+                      {app.status === 'Ditolak' && getCooldownInfo(app) && !getCooldownInfo(app).canApply && (
+                        <p className="text-xs text-red-500 normal-case mt-1 font-semibold">{getCooldownInfo(app).label}</p>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>

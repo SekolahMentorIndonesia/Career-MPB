@@ -12,8 +12,12 @@ const FileInput = ({ label, id, onChange, required = false, icon: Icon, descript
       setPreview(url);
       return () => URL.revokeObjectURL(url);
     } else if (uploadedFile?.isExisting && uploadedFile?.url) {
-      if (typeof uploadedFile.url === 'string' && uploadedFile.url.match(/\.(jpg|jpeg|png|webp)$/i)) {
-        setPreview(`http://${window.location.hostname}:8000${uploadedFile.url}`);
+      const fullUrl = uploadedFile.url.startsWith('http')
+        ? uploadedFile.url
+        : `${window.API_BASE_URL}${uploadedFile.url}`;
+
+      if (typeof uploadedFile.url === 'string' && uploadedFile.url.match(/\.(jpg|jpeg|png|webp|gif|svg)$/i)) {
+        setPreview(fullUrl);
       } else {
         setPreview(null);
       }
@@ -22,7 +26,7 @@ const FileInput = ({ label, id, onChange, required = false, icon: Icon, descript
     }
   }, [uploadedFile]);
 
-  const backendUrl = `http://${window.location.hostname}:8000`;
+  const backendUrl = `${window.API_BASE_URL}`;
 
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden transition-all hover:shadow-md">
@@ -57,29 +61,30 @@ const FileInput = ({ label, id, onChange, required = false, icon: Icon, descript
         )}
 
         {isEditing ? (
-          <div className="mt-2">
+          <div className="mt-2 group">
             <label
               htmlFor={id}
-              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold text-gray-700 hover:bg-gray-100 transition-all cursor-pointer"
+              className="w-full h-12 flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-50 border-2 border-dashed border-blue-200 rounded-xl text-xs font-bold text-blue-700 hover:bg-blue-100 hover:border-blue-300 transition-all cursor-pointer select-none active:scale-[0.98]"
             >
-              <Upload className="w-3.5 h-3.5" />
-              {uploadedFile?.file ? 'Ganti File' : 'Pilih File'}
+              <Upload className="w-4 h-4" />
+              {uploadedFile?.file ? 'Ganti Berkas' : 'Pilih Berkas'}
               <input
                 id={id}
                 name={id}
                 type="file"
                 className="sr-only"
                 onChange={onChange}
+                onClick={(e) => { e.target.value = null; }} // Allow re-selecting same file
                 accept={
                   id === 'cv' ? '.pdf' :
-                    (id === 'sertifikat' || id === 'paklaring') ? '.pdf,image/*' :
+                    (id === 'sertifikat' || id === 'paklaring' || id === 'portofolioFile') ? '.pdf,image/*' :
                       'image/*'
                 }
               />
             </label>
             {uploadedFile?.file && (
-              <p className="mt-2 text-[10px] text-blue-600 font-bold italic truncate">
-                Siap upload: {uploadedFile.file.name}
+              <p className="mt-2 text-[10px] text-blue-600 font-bold italic truncate px-1">
+                Akan diunggah: {uploadedFile.file.name}
               </p>
             )}
           </div>
@@ -126,7 +131,7 @@ const UserDocuments = () => {
   const fetchExistingDocuments = async () => {
     setIsFetching(true);
     try {
-      const response = await fetch(`http://${window.location.hostname}:8000/api/user/documents`, {
+      const response = await fetch(`${window.API_BASE_URL}/api/user/documents`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
@@ -186,7 +191,7 @@ const UserDocuments = () => {
     if (files.paklaring) formData.append('paklaring', files.paklaring);
 
     try {
-      const response = await fetch(`http://${window.location.hostname}:8000/api/user/documents`, {
+      const response = await fetch(`${window.API_BASE_URL}/api/user/documents`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -230,7 +235,7 @@ const UserDocuments = () => {
     );
   }
 
-  const backendUrl = `http://${window.location.hostname}:8000`;
+  const backendUrl = `${window.API_BASE_URL}`;
 
   return (
     <div className="pb-12 bg-transparent">
@@ -348,64 +353,73 @@ const UserDocuments = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 min-h-[300px]">
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden p-5 transition-all hover:shadow-md">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-gray-50 rounded-lg text-gray-500">
-                <Briefcase className="h-5 w-5" />
-              </div>
-              <h3 className="text-sm font-bold text-gray-900">Portofolio</h3>
-            </div>
-
-            <div className="space-y-4">
-              {isEditing ? (
-                <>
-                  <div className="bg-gray-50 border-2 border-dashed border-gray-200 rounded-xl p-4 text-center group hover:border-blue-300 transition-colors">
-                    <label htmlFor="portofolioFile" className="cursor-pointer block">
-                      <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2 opacity-50 group-hover:opacity-100 transition-opacity" />
-                      <p className="text-[10px] font-bold text-gray-500 uppercase">Upload File (PDF/Gambar)</p>
-                      <input id="portofolioFile" type="file" className="sr-only" onChange={handleFileChange('portofolioFile')} accept=".pdf,image/*" />
-                    </label>
-                    {files.portofolioFile && <p className="mt-2 text-[10px] text-blue-600 font-bold truncate">{files.portofolioFile.name}</p>}
-                  </div>
-                  <div>
-                    <label className="text-[10px] font-bold text-gray-400 uppercase mb-1.5 block">Atau Tautan Eksternal</label>
-                    <input
-                      type="url"
-                      placeholder="https://behance.net/username"
-                      className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs focus:ring-2 focus:ring-blue-500 outline-none"
-                      value={portofolioLink}
-                      onChange={(e) => setPortofolioLink(e.target.value)}
-                    />
-                  </div>
-                </>
-              ) : (
-                <div className="bg-gray-50/50 rounded-xl p-4 border border-gray-100 text-center min-h-[120px] flex flex-col items-center justify-center">
-                  {existingDocs.portfolio_url || existingDocs.portfolio_link ? (
-                    <div className="flex flex-col items-center gap-3 w-full">
-                      {existingDocs.portfolio_url && (
-                        <div className="flex flex-col items-center gap-1 w-full p-2 bg-blue-50/50 rounded-xl border border-blue-100">
-                          <FileText className="w-6 h-6 text-blue-400" />
-                          <span className="text-[10px] font-bold text-blue-600 uppercase tracking-tight">File Portofolio</span>
-                          <a href={`${backendUrl}${existingDocs.portfolio_url}`} target="_blank" rel="noopener noreferrer" className="text-[10px] text-blue-500 underline font-extrabold">LIHAT PDF</a>
-                        </div>
-                      )}
-
-                      {existingDocs.portfolio_link && (
-                        <div className="flex flex-col items-center gap-1 w-full p-2 bg-indigo-50/50 rounded-xl border border-indigo-100">
-                          <Link className="w-6 h-6 text-indigo-400" />
-                          <span className="text-[10px] font-bold text-indigo-600 uppercase tracking-tight">Tautan Link</span>
-                          <a href={existingDocs.portfolio_link} target="_blank" rel="noopener noreferrer" className="text-[10px] text-indigo-500 underline font-extrabold truncate max-w-full italic px-2">{existingDocs.portfolio_link}</a>
-                        </div>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="flex flex-col items-center gap-2 text-gray-300">
-                      <Briefcase className="w-8 h-8 opacity-20" />
-                      <p className="text-[10px] font-bold">BELUM ADA PORTOFOLIO</p>
-                    </div>
-                  )}
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden transition-all hover:shadow-md h-full flex flex-col">
+            <div className="p-5 flex-1">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-2 bg-gray-50 rounded-lg text-gray-500">
+                  <Briefcase className="h-5 w-5" />
                 </div>
-              )}
+                <h3 className="text-sm font-bold text-gray-900">Portofolio</h3>
+              </div>
+
+              <div className="space-y-4">
+                {isEditing ? (
+                  <>
+                    <div className="bg-blue-50 border-2 border-dashed border-blue-200 rounded-xl p-4 text-center group hover:bg-blue-100 hover:border-blue-300 transition-all cursor-pointer relative">
+                      <label htmlFor="portofolioFile" className="cursor-pointer block">
+                        <Upload className="w-8 h-8 text-blue-400 mx-auto mb-2 opacity-60 group-hover:opacity-100" />
+                        <p className="text-[10px] font-bold text-blue-700 uppercase">Upload Berkas (PDF/LinkGambar)</p>
+                        <input id="portofolioFile" type="file" className="sr-only" onChange={handleFileChange('portofolioFile')} onClick={(e) => { e.target.value = null; }} accept=".pdf,image/*" />
+                      </label>
+                      {files.portofolioFile && <p className="mt-2 text-[10px] text-blue-600 font-bold truncate px-1">Siap: {files.portofolioFile.name}</p>}
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-bold text-gray-400 uppercase mb-1.5 block px-1">Atau Tautan Eksternal</label>
+                      <div className="relative">
+                        <Link className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
+                        <input
+                          type="url"
+                          placeholder="https://behance.net/username"
+                          className="w-full pl-9 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                          value={portofolioLink}
+                          onChange={(e) => setPortofolioLink(e.target.value)}
+                        />
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <div className="bg-gray-50/50 rounded-xl p-4 border border-gray-100 text-center min-h-[120px] flex flex-col items-center justify-center gap-3">
+                    {existingDocs.portfolio_url || existingDocs.portfolio_link ? (
+                      <div className="flex flex-col gap-3 w-full">
+                        {existingDocs.portfolio_url && (
+                          <div className="flex items-center justify-between p-3 bg-white rounded-xl border border-gray-100 shadow-sm">
+                            <div className="flex items-center gap-2 overflow-hidden">
+                              <FileText className="w-4 h-4 text-blue-500 flex-shrink-0" />
+                              <span className="text-[10px] font-bold text-gray-700 truncate">Berkas Terunggah</span>
+                            </div>
+                            <a href={`${backendUrl}${existingDocs.portfolio_url}`} target="_blank" rel="noopener noreferrer" className="text-[10px] text-blue-600 font-extrabold hover:underline whitespace-nowrap">LIHAT PDF</a>
+                          </div>
+                        )}
+
+                        {existingDocs.portfolio_link && (
+                          <div className="flex items-center justify-between p-3 bg-white rounded-xl border border-gray-100 shadow-sm">
+                            <div className="flex items-center gap-2 overflow-hidden">
+                              <Link className="w-4 h-4 text-indigo-500 flex-shrink-0" />
+                              <span className="text-[10px] font-bold text-gray-700 truncate">{existingDocs.portfolio_link.replace(/^https?:\/\//, '')}</span>
+                            </div>
+                            <a href={existingDocs.portfolio_link.startsWith('http') ? existingDocs.portfolio_link : `https://${existingDocs.portfolio_link}`} target="_blank" rel="noopener noreferrer" className="text-[10px] text-indigo-600 font-extrabold hover:underline whitespace-nowrap">BUKA LINK</a>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center gap-2 text-gray-300">
+                        <Briefcase className="w-8 h-8 opacity-20" />
+                        <p className="text-[10px] font-bold uppercase tracking-widest">Belum Ada Data</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 

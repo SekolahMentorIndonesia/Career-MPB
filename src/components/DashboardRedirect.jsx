@@ -9,11 +9,11 @@ const DashboardRedirect = () => {
     return <div>Loading...</div>; // Or a more sophisticated loading spinner
   }
 
-  if (user && user.role === 'ADMIN') {
+  if (user && user.role?.toUpperCase() === 'ADMIN') {
     return <Navigate to="/dashboard/admin" replace />;
   }
 
-  if (user && user.role === 'USER') {
+  if (user && user.role?.toUpperCase() === 'USER') {
     return <Navigate to="/dashboard/user" replace />;
   }
 

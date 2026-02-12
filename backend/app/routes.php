@@ -1,43 +1,66 @@
 <?php
 
 use App\Controllers\AuthController;
+use App\Controllers\GoogleAuthController;
 use App\Controllers\UserController;
 use App\Controllers\AdminController;
 use App\Controllers\JobController;
 use App\Controllers\ApplicationController;
 use App\Controllers\NotificationController;
 use App\Controllers\PsychotestController;
+use App\Controllers\HealthController;
 use App\Helpers\ResponseHelper;
 
 $auth = new AuthController();
+$googleAuth = new GoogleAuthController();
 $user = new UserController();
 $admin = new AdminController();
 $job = new JobController();
 $app = new ApplicationController();
 $notif = new NotificationController();
 $psychotest = new PsychotestController();
+$health = new HealthController();
 
 $method = $_SERVER['REQUEST_METHOD'];
 $requestUri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-$scriptName = dirname($_SERVER['SCRIPT_NAME']);
-if ($scriptName === '/' || $scriptName === '\\') {
-    $path = $requestUri;
-} else {
-    $path = str_replace($scriptName, '', $requestUri);
+
+// More robust path calculation for various hosting environments
+$path = $requestUri;
+
+// Strip SCRIPT_NAME prefix if present (e.g. /backend/public/index.php/api/...)
+$scriptName = $_SERVER['SCRIPT_NAME'];
+$scriptDir = dirname($scriptName);
+
+if ($scriptDir !== '/' && $scriptDir !== '\\' && strpos($path, $scriptDir) === 0) {
+    $path = substr($path, strlen($scriptDir));
 }
 
 // Ensure path starts with /
-if (strpos($path, '/') !== 0) {
+if (empty($path) || $path[0] !== '/') {
     $path = '/' . $path;
 }
 
-// Remove index.php from path if present (for URL like index.php/api/...)
-$path = str_replace('/index.php', '', $path);
+// Explicitly strip common prefixes that might linger due to .htaccess or various configs
+$prefixesToRemove = ['/index.php', '/public', '/backend'];
+foreach ($prefixesToRemove as $prefix) {
+    if (strpos($path, $prefix) === 0) {
+        $path = substr($path, strlen($prefix));
+    }
+}
+
+// Final check: ensure path starts with / and isn't empty
+if (empty($path) || $path[0] !== '/') {
+    $path = '/' . $path;
+}
 
 // Simple hardcoded router
 switch ($path) {
     case '/api/auth/register':
         if ($method == 'POST') $auth->register();
+        else ResponseHelper::error("Method not allowed", 405);
+        break;
+    case '/api/health':
+        if ($method == 'GET') $health->check();
         else ResponseHelper::error("Method not allowed", 405);
         break;
     case '/api/auth/verify-email':
@@ -48,6 +71,10 @@ switch ($path) {
         if ($method == 'POST') $auth->login();
         else ResponseHelper::error("Method not allowed", 405);
         break;
+    case '/api/auth/google':
+        if ($method == 'POST') $googleAuth->googleLogin();
+        else ResponseHelper::error("Method not allowed", 405);
+        break;
     
     case '/api/user/profile':
         if ($method == 'GET') $user->getProfile();
@@ -56,6 +83,7 @@ switch ($path) {
         break;
     case '/api/user/upload-photo':
         if ($method == 'POST') $user->uploadPhoto();
+        elseif ($method == 'DELETE') $user->deletePhoto();
         else ResponseHelper::error("Method not allowed", 405);
         break;
     case '/api/user/request-phone-otp':
@@ -92,8 +120,16 @@ switch ($path) {
         if ($method == 'GET') $admin->getDashboardStats();
         else ResponseHelper::error("Method not allowed", 405);
         break;
+    case '/api/admin/notifications':
+        if ($method == 'GET') $admin->getNotifications();
+        else ResponseHelper::error("Method not allowed", 405);
+        break;
     case '/api/admin/notifications/send':
         if ($method == 'POST') $admin->sendNotification();
+        else ResponseHelper::error("Method not allowed", 405);
+        break;
+    case '/api/admin/notifications/hide':
+        if ($method == 'POST') $admin->hideNotification();
         else ResponseHelper::error("Method not allowed", 405);
         break;
 
@@ -171,7 +207,17 @@ switch ($path) {
             if ($method == 'GET') $job->show($id);
             elseif ($method == 'PUT') $job->update($id);
             elseif ($method == 'DELETE') $job->delete($id);
-            // else ResponseHelper::error("Method not allowed", 405);
+            else ResponseHelper::error("Method not allowed", 405);
+        } elseif (preg_match('/^\/api\/notifications\/(\d+)$/', $path, $matches)) {
+            $id = $matches[1];
+            if ($method == 'PUT') $notif->update($id);
+            else ResponseHelper::error("Method not allowed", 405);
+        } elseif (preg_match('/^\/api\/user\/notifications\/(\d+)$/', $path, $matches)) {
+            // Delete route removed
+            ResponseHelper::error("Method not allowed", 405);
+        } elseif (preg_match('/^\/api\/admin\/notifications\/(\d+)\/all\/?$/', $path, $matches)) {
+            // Delete for all route removed
+            ResponseHelper::error("Method not allowed", 405);
         } elseif ($path == '/api/user/psychotest' && $method == 'GET') {
             $app->getUserPsychotest();
         } else {

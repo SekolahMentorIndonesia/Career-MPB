@@ -1,0 +1,16 @@
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+  
+  # Forward to /backend/ if request starts with /backend
+  # This ensures API requests are handled by the backend subfolder
+  RewriteCond %{REQUEST_URI} ^/backend/(.*)$ [NC]
+  RewriteRule ^backend/(.*)$ backend/$1 [L]
+
+  # SPA Routing: If the request is not for a real file or directory,
+  # and not for the backend, route it to index.html
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteCond %{REQUEST_URI} !^/backend/ [NC]
+  RewriteRule ^ index.html [L]
+</IfModule>

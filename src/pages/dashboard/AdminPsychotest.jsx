@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { User, CheckCircle, XCircle, Clock, Users, FileText, BarChart, Search, ChevronsUpDown, Link as LinkIcon, Copy, Check, Loader2, Trash2, Plus, Save, PencilLine, X, Eye } from 'lucide-react';
+import { User, CheckCircle, XCircle, Clock, Users, FileText, BarChart, Search, ChevronsUpDown, Link as LinkIcon, Copy, Check, Loader2, Trash2, Plus, Save, PencilLine, X, Eye, Briefcase } from 'lucide-react';
 import clsx from 'clsx';
 import { Listbox, ListboxButton, ListboxOptions, ListboxOption } from '@headlessui/react';
 import { useNotification } from '../../context/NotificationContext';
@@ -44,7 +44,7 @@ const AdminPsychotest = () => {
   const fetchParticipants = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch(`http://${window.location.hostname}:8000/api/applications`, {
+      const response = await fetch(`${window.API_BASE_URL}/api/applications`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
@@ -52,7 +52,7 @@ const AdminPsychotest = () => {
       const data = await response.json();
       if (data.success) {
         const psicotesParticipants = data.data.filter(app =>
-          ['Tes Psikotes', 'Psikotes', 'Interview', 'Diterima', 'Ditolak'].includes(app.status)
+          ['Tes Psikotes', 'Psikotes', 'Interview', 'Diterima'].includes(app.status)
         );
         setParticipants(psicotesParticipants);
       }
@@ -68,7 +68,7 @@ const AdminPsychotest = () => {
   const fetchQuestions = async () => {
     setIsLoadingQuestions(true);
     try {
-      const response = await fetch(`http://${window.location.hostname}:8000/api/admin/psychotest/questions`, {
+      const response = await fetch(`${window.API_BASE_URL}/api/admin/psychotest/questions`, {
         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
       });
       const data = await response.json();
@@ -84,7 +84,7 @@ const AdminPsychotest = () => {
 
   const fetchSummary = async () => {
     try {
-      const response = await fetch(`http://${window.location.hostname}:8000/api/admin/psychotest/summary`, {
+      const response = await fetch(`${window.API_BASE_URL}/api/admin/psychotest/summary`, {
         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
       });
       const data = await response.json();
@@ -98,7 +98,7 @@ const AdminPsychotest = () => {
 
   const fetchSettings = async () => {
     try {
-      const response = await fetch(`http://${window.location.hostname}:8000/api/admin/psychotest/settings`, {
+      const response = await fetch(`${window.API_BASE_URL}/api/admin/psychotest/settings`, {
         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
       });
       const data = await response.json();
@@ -121,7 +121,7 @@ const AdminPsychotest = () => {
 
   const handleUpdateSettings = async () => {
     try {
-      const response = await fetch(`http://${window.location.hostname}:8000/api/admin/psychotest/settings`, {
+      const response = await fetch(`${window.API_BASE_URL}/api/admin/psychotest/settings`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -150,7 +150,7 @@ const AdminPsychotest = () => {
     }
 
     try {
-      const response = await fetch(`http://${window.location.hostname}:8000/api/admin/psychotest/questions`, {
+      const response = await fetch(`${window.API_BASE_URL}/api/admin/psychotest/questions`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -176,7 +176,7 @@ const AdminPsychotest = () => {
   const handleDeleteQuestion = async () => {
     if (!questionToDelete) return;
     try {
-      const response = await fetch(`http://${window.location.hostname}:8000/api/admin/psychotest/questions`, {
+      const response = await fetch(`${window.API_BASE_URL}/api/admin/psychotest/questions`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
@@ -228,7 +228,7 @@ const AdminPsychotest = () => {
       const link = `${window.location.origin}/test-psikotes/${code}?app=${selectedUser.id}`;
 
       try {
-        const response = await fetch(`http://${window.location.hostname}:8000/api/applications/generate-link`, {
+        const response = await fetch(`${window.API_BASE_URL}/api/applications/generate-link`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -264,15 +264,15 @@ const AdminPsychotest = () => {
       </div>
 
       <div className="bg-white shadow-sm rounded-lg border border-gray-100 p-0 overflow-hidden">
-        <div className="border-b border-gray-200">
-          <nav className="-mb-px flex space-x-8 px-6" aria-label="Tabs">
+        <div className="border-b border-gray-200 overflow-x-auto scrollbar-hide">
+          <nav className="-mb-px flex space-x-8 px-6 min-w-max" aria-label="Tabs">
             <button
               onClick={() => setActiveTab('participants')}
               className={clsx(
                 activeTab === 'participants'
                   ? 'border-blue-500 text-blue-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300',
-                'group inline-flex items-center py-4 px-1 border-b-2 font-medium text-sm'
+                'group inline-flex items-center py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap'
               )}
             >
               <Users className={clsx(activeTab === 'participants' ? 'text-blue-600' : 'text-gray-400 group-hover:text-gray-500', '-ml-0.5 mr-2 h-5 w-5')} />
@@ -284,7 +284,7 @@ const AdminPsychotest = () => {
                 activeTab === 'questions'
                   ? 'border-blue-500 text-blue-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300',
-                'group inline-flex items-center py-4 px-1 border-b-2 font-medium text-sm'
+                'group inline-flex items-center py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap'
               )}
             >
               <FileText className={clsx(activeTab === 'questions' ? 'text-blue-600' : 'text-gray-400 group-hover:text-gray-500', '-ml-0.5 mr-2 h-5 w-5')} />
@@ -296,7 +296,7 @@ const AdminPsychotest = () => {
                 activeTab === 'summary'
                   ? 'border-blue-500 text-blue-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300',
-                'group inline-flex items-center py-4 px-1 border-b-2 font-medium text-sm'
+                'group inline-flex items-center py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap'
               )}
             >
               <BarChart className={clsx(activeTab === 'summary' ? 'text-blue-600' : 'text-gray-400 group-hover:text-gray-500', '-ml-0.5 mr-2 h-5 w-5')} />
@@ -340,45 +340,91 @@ const AdminPsychotest = () => {
                   <h3 className="mt-2 text-sm font-medium text-gray-900">Belum ada peserta pada tahap psikotes.</h3>
                 </div>
               ) : (
-                <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama Peserta</th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Posisi</th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status Aplikasi</th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hasil Akhir</th>
-                        <th scope="col" className="relative px-6 py-3"><span className="sr-only">Aksi</span></th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                      {participants.map((participant) => (
-                        <tr key={participant.id}>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                            <div>{participant.applicant_name}</div>
-                            <div className="text-xs text-gray-500 font-normal">{participant.applicant_email}</div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-xs">{participant.job_title}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">{participant.status}</span>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {participant.psychotest_results ? (
-                              <span className={clsx(
-                                "px-2 inline-flex text-xs leading-5 font-semibold rounded-full",
-                                participant.psychotest_score >= 70 ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
-                              )}>
-                                {participant.psychotest_score} (Grade: {participant.psychotest_results})
-                              </span>
-                            ) : '-'}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                            <button className="text-blue-600 hover:text-blue-900 mr-4"><User className="h-5 w-5" /></button>
-                          </td>
+                <div className="overflow-hidden border border-gray-100 rounded-xl">
+                  {/* Desktop Table View */}
+                  <div className="hidden md:block overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama Peserta</th>
+                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Posisi</th>
+                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status Aplikasi</th>
+                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hasil Akhir</th>
+                          <th scope="col" className="relative px-6 py-3"><span className="sr-only">Aksi</span></th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {participants.map((participant) => (
+                          <tr key={participant.id} className="hover:bg-gray-50 transition-colors">
+                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                              <div>{participant.applicant_name}</div>
+                              <div className="text-xs text-gray-500 font-normal">{participant.applicant_email}</div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-xs">{participant.job_title}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              <span className="px-2.5 py-1 inline-flex text-xs leading-5 font-bold rounded-full bg-blue-50 text-blue-700 border border-blue-100">{participant.status}</span>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              {participant.psychotest_results ? (
+                                <span className={clsx(
+                                  "px-2.5 py-1 inline-flex text-xs leading-5 font-bold rounded-full border",
+                                  participant.psychotest_score >= 70 ? "bg-green-50 text-green-700 border-green-100" : "bg-red-50 text-red-700 border-red-100"
+                                )}>
+                                  Score: {participant.psychotest_score}
+                                </span>
+                              ) : <span className="text-gray-300 italic text-xs">Belum dikerjakan</span>}
+                            </td>
+
+
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Mobile Card View */}
+                  <div className="md:hidden divide-y divide-gray-100">
+                    {participants.map((p) => (
+                      <div key={p.id} className="p-4 space-y-3 bg-white">
+                        <div className="flex justify-between items-start">
+                          <div className="space-y-1">
+                            <h4 className="text-sm font-black text-gray-900 leading-tight">{p.applicant_name}</h4>
+                            <p className="text-[10px] text-gray-500 font-medium">{p.applicant_email}</p>
+                          </div>
+                          <span className="px-2 py-0.5 text-[9px] font-black uppercase rounded-full bg-blue-50 text-blue-700 border border-blue-100">
+                            {p.status}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-2 text-[10px] text-gray-500">
+                          <Briefcase className="w-3 h-3" />
+                          <span className="font-bold text-gray-700 truncate">{p.job_title}</span>
+                        </div>
+
+                        <div className="flex items-center justify-between pt-2 border-t border-gray-50">
+                          <div className="flex-1">
+                            <p className="text-[9px] font-bold text-gray-400 uppercase mb-1">Hasil Psikotes</p>
+                            {p.psychotest_results ? (
+                              <div className="flex items-center gap-2">
+                                <span className={clsx(
+                                  "px-2 py-0.5 text-[10px] font-black rounded-full border",
+                                  p.psychotest_score >= 70 ? "bg-green-50 text-green-700 border-green-100" : "bg-red-50 text-red-700 border-red-100"
+                                )}>
+                                  Score: {p.psychotest_score}
+                                </span>
+
+                              </div>
+                            ) : (
+                              <span className="text-[10px] text-gray-300 font-bold italic">Menunggu Pengerjaan</span>
+                            )}
+                          </div>
+                          <button className="p-2 bg-gray-50 text-gray-600 rounded-lg border border-gray-100 active:scale-95 transition-all">
+                            <User className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
             </>
@@ -388,13 +434,13 @@ const AdminPsychotest = () => {
             <div className="space-y-6">
               {/* Settings Section */}
               <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
-                <div className="p-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
-                  <div>
+                <div className="p-4 border-b border-gray-100 bg-gray-50 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 md:gap-0">
+                  <div className="w-full md:w-auto">
                     <h3 className="text-lg font-semibold text-gray-800">Konfigurasi Tes</h3>
                     <p className="text-sm text-gray-500">Atur komposisi dan durasi tes psikotes</p>
                   </div>
 
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 w-full md:w-auto">
                     <button
                       onClick={() => {
                         window.open(`${window.location.origin}/test-psikotes/demo?mode=preview`, '_blank');
@@ -657,62 +703,85 @@ const AdminPsychotest = () => {
                 </div>
 
                 <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
-                  <p className="text-sm font-medium text-gray-500 mb-1">Distribusi Grade</p>
-                  <div className="flex gap-2 mt-2">
-                    {['A', 'B', 'C', 'D', 'E'].map(grade => (
-                      <div key={grade} className="flex-1 flex flex-col items-center">
-                        <span className="text-xs font-bold text-gray-400 mb-1">{grade}</span>
-                        <div className="w-full bg-gray-100 h-1 rounded-full overflow-hidden">
-                          <div
-                            className={clsx("h-full", grade === 'A' ? "bg-green-500" : (grade === 'E' ? "bg-red-500" : "bg-blue-500"))}
-                            style={{ width: summaryData?.breakdown?.[grade] ? `${(summaryData.breakdown[grade] / summaryData.total_participants) * 100}%` : '0%' }}
-                          ></div>
-                        </div>
-                        <span className="mt-1 text-[10px] text-gray-500">{summaryData?.breakdown?.[grade] || 0}</span>
-                      </div>
-                    ))}
+                  <p className="text-sm font-medium text-gray-500 mb-1">Status Kelulusan</p>
+                  <div className="flex gap-4 mt-2">
+                    <div className="flex-1 text-center bg-green-50 rounded-lg p-2 border border-green-100">
+                      <p className="text-xs font-bold text-green-700 uppercase">Lulus</p>
+                      <p className="text-xl font-black text-green-800">{summaryData?.passed || 0}</p>
+                    </div>
+                    <div className="flex-1 text-center bg-red-50 rounded-lg p-2 border border-red-100">
+                      <p className="text-xs font-bold text-red-700 uppercase">Gagal</p>
+                      <p className="text-xl font-black text-red-800">{summaryData?.failed || 0}</p>
+                    </div>
                   </div>
-                </div>
-              </div>
+                </div>              </div>
 
               <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 overflow-hidden">
                 <h3 className="text-lg font-bold text-gray-800 mb-4">Hasil Detail Peserta</h3>
-                <div className="overflow-x-auto -mx-6">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama Peserta</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Skor</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Grade</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal</th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                      {participants.filter(p => p.score !== null).length === 0 ? (
+                <div className="overflow-hidden border border-gray-100 rounded-xl">
+                  {/* Desktop View */}
+                  <div className="hidden md:block overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-50">
                         <tr>
-                          <td colSpan="4" className="px-6 py-10 text-center text-sm text-gray-500 italic">Belum ada peserta yang menyelesaikan tes</td>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama Peserta</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Skor</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal</th>
                         </tr>
-                      ) : (
-                        participants.filter(p => p.score !== null).map((p, idx) => (
-                          <tr key={idx} className="hover:bg-gray-50">
-                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{p.user_name}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{p.score}</td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <span className={clsx(
-                                "px-2.5 py-0.5 rounded-full text-xs font-bold",
-                                p.results === 'A' ? "bg-green-100 text-green-700" : (p.results === 'E' ? "bg-red-100 text-red-700" : "bg-blue-100 text-blue-700")
-                              )}>
-                                Grade {p.results}
-                              </span>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">
-                              {new Date(p.created_at).toLocaleDateString('id-ID')}
-                            </td>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {participants.filter(p => (p.psychotest_score !== null && p.psychotest_score !== undefined)).length === 0 ? (
+                          <tr>
+                            <td colSpan="4" className="px-6 py-10 text-center text-sm text-gray-500 italic">Belum ada peserta yang menyelesaikan tes</td>
                           </tr>
-                        ))
-                      )}
-                    </tbody>
-                  </table>
+                        ) : (
+                          participants.filter(p => (p.psychotest_score !== null && p.psychotest_score !== undefined)).map((p, idx) => (
+                            <tr key={idx} className="hover:bg-gray-50">
+                              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{p.applicant_name}</td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{p.psychotest_score}</td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <span className={clsx(
+                                  "px-2.5 py-0.5 rounded-full text-xs font-bold",
+                                  p.psychotest_score >= 70 ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+                                )}>
+                                  {p.psychotest_score >= 70 ? 'Lulus' : 'Gagal'}
+                                </span>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">
+                                {p.updated_at ? new Date(p.updated_at).toLocaleDateString('id-ID') : '-'}
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Mobile View */}
+                  <div className="md:hidden divide-y divide-gray-100">
+                    {participants.filter(p => (p.psychotest_score !== null && p.psychotest_score !== undefined)).length === 0 ? (
+                      <div className="p-10 text-center text-sm text-gray-400 italic">Belum ada peserta selesai</div>
+                    ) : (
+                      participants.filter(p => (p.psychotest_score !== null && p.psychotest_score !== undefined)).map((p, idx) => (
+                        <div key={idx} className="p-4 flex items-center justify-between bg-white hover:bg-gray-50 transition-colors">
+                          <div className="space-y-1">
+                            <h4 className="text-sm font-bold text-gray-900 leading-tight">{p.applicant_name}</h4>
+                            <p className="text-[10px] text-gray-400">{p.updated_at ? new Date(p.updated_at).toLocaleDateString('id-ID') : '-'}</p>
+                          </div>
+                          <div className="flex flex-col items-end gap-1">
+                            <span className="text-[10px] font-black text-gray-900">Score: {p.psychotest_score}</span>
+                            <span className={clsx(
+                              "px-2 py-0.5 rounded-full text-[9px] font-black uppercase",
+                              p.psychotest_score >= 70 ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"
+                            )}>
+                              {p.psychotest_score >= 70 ? 'Lulus' : 'Gagal'}
+                            </span>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
@@ -784,10 +853,10 @@ const AdminPsychotest = () => {
         {/* Delete Confirmation Modal */}
         <ConfirmationModal
           isOpen={isDeleteModalOpen}
-          onClose={() => setIsDeleteModalOpen(false)}
+          onCancel={() => setIsDeleteModalOpen(false)}
           title="Hapus Soal"
           message="Apakah Anda yakin ingin menghapus soal ini? Tindakan ini tidak dapat dibatalkan."
-          confirmLabel="Hapus"
+          confirmText="Hapus"
           onConfirm={handleDeleteQuestion}
         />
 

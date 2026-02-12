@@ -5,12 +5,12 @@ import { useNotification } from '../../context/NotificationContext';
 const UserPsychotest = () => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const { addNotification } = useNotification();
+  const { showNotification } = useNotification();
 
   useEffect(() => {
     const fetchPsychotest = async () => {
       try {
-        const response = await fetch(`http://${window.location.hostname}:8000/api/user/psychotest`, {
+        const response = await fetch(`${window.API_BASE_URL}/api/user/psychotest`, {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`
           }
@@ -33,7 +33,7 @@ const UserPsychotest = () => {
     if (!data) return { icon: <Brain className="h-6 w-6 text-gray-500" />, text: 'Belum Ada Penjadwalan', subtext: 'Anda belum memiliki jadwal psikotes. Silakan tunggu update setelah lolos seleksi berkas.', color: 'gray' };
 
     // If status is still Administrasi or Ditolak, no link yet
-    if (data.status === 'Administrasi') return { icon: <Clock className="h-6 w-6 text-yellow-500" />, text: 'Menunggu Review Berkas', subtext: 'Lamaran Anda sedang direview. Link psikotes akan muncul jika Anda lolos tahap administrasi.', color: 'orange' };
+    if (data.status === 'Administrasi' || data.status === 'Seleksi Administrasi') return { icon: <Clock className="h-6 w-6 text-yellow-500" />, text: 'Menunggu Review Berkas', subtext: 'Lamaran Anda sedang direview. Link psikotes akan muncul jika Anda lolos tahap administrasi.', color: 'orange' };
     if (data.status === 'Ditolak') return { icon: <CheckCircle className="h-6 w-6 text-red-500" />, text: 'Belum Beruntung', subtext: 'Maaf, lamaran Anda belum memenuhi kualifikasi kami untuk tahap selanjutnya.', color: 'red' };
 
     // If moved to Psikotes but link not yet assigned by admin
@@ -89,19 +89,32 @@ const UserPsychotest = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="bg-white shadow-md rounded-xl p-6 border border-gray-100">
-          <h3 className="text-lg font-bold text-gray-900 mb-4">Informasi Penting</h3>
-          <ul className="space-y-3 text-sm text-gray-600">
-            <li className="flex gap-2">
-              <span className="text-indigo-600 font-bold">•</span>
-              Pastikan koneksi internet stabil saat mengerjakan.
+          <h3 className="text-lg font-bold text-gray-900 mb-2">Informasi Penting Psikotes</h3>
+          <p className="text-sm text-gray-500 mb-4 font-medium italic">Mohon dibaca sebelum memulai tes:</p>
+          <ul className="space-y-3 text-[13px] text-gray-600 leading-relaxed">
+            <li className="flex gap-3">
+              <span className="text-indigo-600 font-bold shrink-0">•</span>
+              <span>Psikotes ini merupakan bagian dari proses seleksi rekrutmen.</span>
             </li>
-            <li className="flex gap-2">
-              <span className="text-indigo-600 font-bold">•</span>
-              Siapkan alat tulis dan kertas coretan jika diperlukan.
+            <li className="flex gap-3">
+              <span className="text-indigo-600 font-bold shrink-0">•</span>
+              <span>Setiap peserta hanya dapat mengerjakan 1 (satu) kali.</span>
             </li>
-            <li className="flex gap-2">
-              <span className="text-indigo-600 font-bold">•</span>
-              Kerjakan di tempat yang tenang dan kondusif.
+            <li className="flex gap-3">
+              <span className="text-indigo-600 font-bold shrink-0">•</span>
+              <span>Pastikan Anda berada dalam kondisi tenang, fokus, dan tanpa gangguan.</span>
+            </li>
+            <li className="flex gap-3">
+              <span className="text-indigo-600 font-bold shrink-0">•</span>
+              <span>Gunakan perangkat pribadi (laptop/PC disarankan).</span>
+            </li>
+            <li className="flex gap-3">
+              <span className="text-indigo-600 font-bold shrink-0">•</span>
+              <span>Sistem akan mencatat aktivitas selama pengerjaan untuk menjaga keadilan dan integritas tes.</span>
+            </li>
+            <li className="flex gap-3">
+              <span className="text-indigo-600 font-bold shrink-0">•</span>
+              <span>Hasil psikotes akan digunakan sebagai bahan evaluasi dan tidak dapat diubah setelah dikirim.</span>
             </li>
           </ul>
         </div>
@@ -111,7 +124,10 @@ const UserPsychotest = () => {
           <p className="text-blue-100 text-sm mb-6">
             Jika mengalami kendala teknis saat mengerjakan psikotes, silakan hubungi tim IT Support kami.
           </p>
-          <button className="px-4 py-2 bg-white text-blue-600 font-bold rounded-lg text-sm hover:bg-blue-50 transition-colors">
+          <button
+            onClick={() => window.open('https://wa.me/6283198291207', '_blank')}
+            className="px-4 py-2 bg-white text-blue-600 font-bold rounded-lg text-sm hover:bg-blue-50 transition-colors"
+          >
             Hubungi CS MPB
           </button>
         </div>

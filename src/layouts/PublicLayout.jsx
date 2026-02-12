@@ -66,7 +66,7 @@ const PublicLayout = () => {
               <div className="relative group">
                 <button className="flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors focus:outline-none">
                   {user?.photo ? (
-                    <img src={`http://${window.location.hostname}/backend${user.photo}`} alt="Profile" className="w-8 h-8 rounded-full object-cover" />
+                    <img src={`${window.API_BASE_URL}${user.photo}`} alt="Profile" className="w-8 h-8 rounded-full object-cover" />
                   ) : (
                     <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold text-sm">
                       {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}

@@ -7,7 +7,34 @@ export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(localStorage.getItem('token') || null);
   const [loading, setLoading] = useState(true);
 
-  const API_URL = `http://${window.location.hostname}:8000/api`;
+  const API_URL = (window.API_BASE_URL || '/backend') + '/api';
+
+  // Helper for safe API calls
+  const safeFetch = async (endpoint, options = {}) => {
+    const url = `${API_URL}${endpoint}`;
+
+    try {
+      const response = await fetch(url, options);
+      const text = await response.text();
+
+      let data;
+      try {
+        data = text ? JSON.parse(text) : {};
+      } catch (e) {
+        console.error('JSON Parse Error:', text.substring(0, 200));
+        throw new Error('Server returned an invalid response (not JSON).');
+      }
+
+      if (!response.ok) {
+        throw new Error(data.message || `Request failed with status ${response.status}`);
+      }
+
+      return data;
+    } catch (error) {
+      console.error('API Request Failed:', error);
+      throw error;
+    }
+  };
 
   useEffect(() => {
     // Validate token on mount
@@ -32,13 +59,11 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      const response = await fetch(`${API_URL}/auth/login`, {
+      const result = await safeFetch('/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       });
-
-      const result = await response.json();
 
       if (result.status === 'success') {
         const { token, user } = result.data;
@@ -59,13 +84,11 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (name, email, phone, password) => {
     try {
-      const response = await fetch(`${API_URL}/auth/register`, {
+      const result = await safeFetch('/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, email, phone, password }),
       });
-
-      const result = await response.json();
 
       if (result.status === 'success') {
         return result.data; // May contain debug_otp
@@ -79,13 +102,11 @@ export const AuthProvider = ({ children }) => {
 
   const verifyEmail = async (email, otp) => {
     try {
-      const response = await fetch(`${API_URL}/auth/verify-email`, {
+      const result = await safeFetch('/auth/verify-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, otp }),
       });
-
-      const result = await response.json();
 
       if (result.status === 'success') {
         return true;
@@ -104,6 +125,13 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('user');
   };
 
+  const setAuth = (newToken, newUser) => {
+    setToken(newToken);
+    setUser(newUser);
+    localStorage.setItem('token', newToken);
+    localStorage.setItem('user', JSON.stringify(newUser));
+  };
+
   const updateUser = (newUserData) => {
     setUser((prevUser) => {
       const updatedUser = { ...prevUser, ...newUserData };
@@ -113,7 +141,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, register, verifyEmail, loading, isAuthenticated: !!token, updateUser }}>
+    <AuthContext.Provider value={{ user, token, login, logout, register, verifyEmail, loading, isAuthenticated: !!token, updateUser, setAuth }}>
       {children}
     </AuthContext.Provider>
   );
