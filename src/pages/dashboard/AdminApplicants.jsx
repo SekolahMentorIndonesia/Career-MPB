@@ -9,8 +9,9 @@ const statuses = [
   'Semua Status',
   'Dikirim',
   'Seleksi Administrasi',
-  'Tes Psikotes',
+  'Psikotes',
   'Interview',
+  'Final',
   'Diterima',
   'Ditolak',
 ];
@@ -22,9 +23,8 @@ const getStatusBadge = (status) => {
     case 'Administrasi':
     case 'Seleksi Administrasi':
       return <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">Seleksi Administrasi</span>;
-    case 'Tes Psikotes':
     case 'Psikotes':
-      return <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">Tes Psikotes</span>;
+      return <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">Psikotes</span>;
     case 'Interview':
       return <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-purple-100 text-purple-800">Interview</span>;
     case 'Diterima':
@@ -98,7 +98,7 @@ const AdminApplicants = () => {
     let result = applicants;
 
     if (statusFilter !== 'Semua Status') {
-      result = result.filter(app => app.status === statusFilter || (statusFilter === 'Tes Psikotes' && app.status === 'Psikotes'));
+      result = result.filter(app => app.status === statusFilter);
     }
 
     if (searchQuery) {

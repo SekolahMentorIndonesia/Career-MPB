@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { User, CheckCircle, XCircle, Clock, Users, FileText, BarChart, Search, ChevronsUpDown, Link as LinkIcon, Copy, Check, Loader2, Trash2, Plus, Save, PencilLine, X, Eye, Briefcase } from 'lucide-react';
 import clsx from 'clsx';
-import { Listbox, ListboxButton, ListboxOptions, ListboxOption } from '@headlessui/react';
+import { Combobox, ComboboxButton, ComboboxInput, ComboboxOption, ComboboxOptions, Listbox, ListboxButton, ListboxOptions, ListboxOption } from '@headlessui/react';
 import { useNotification } from '../../context/NotificationContext';
 import ConfirmationModal from '../../components/ConfirmationModal';
 
@@ -13,6 +13,14 @@ const AdminPsychotest = () => {
   const [participants, setParticipants] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const { showNotification } = useNotification();
+  const [query, setQuery] = useState('');
+
+  const filteredParticipantsForSelection = query === ''
+    ? participants.filter(p => p.status === 'Tes Psikotes' || p.status === 'Psikotes')
+    : participants.filter(p => (p.status === 'Tes Psikotes' || p.status === 'Psikotes') && (
+      p.applicant_name.toLowerCase().includes(query.toLowerCase()) ||
+      p.applicant_email.toLowerCase().includes(query.toLowerCase())
+    ));
 
   // Question Bank States
   const [questions, setQuestions] = useState([]);
@@ -52,7 +60,7 @@ const AdminPsychotest = () => {
       const data = await response.json();
       if (data.success) {
         const psicotesParticipants = data.data.filter(app =>
-          ['Tes Psikotes', 'Psikotes', 'Interview', 'Diterima'].includes(app.status)
+          ['Psikotes', 'Interview', 'Final', 'Diterima'].includes(app.status)
         );
         setParticipants(psicotesParticipants);
       }
@@ -879,50 +887,60 @@ const AdminPsychotest = () => {
                 </div>
                 <div className="p-4">
                   <div className="mb-4">
-                    <Listbox value={selectedUser} onChange={setSelectedUser}>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Cari & Pilih Peserta</label>
+                    <Combobox value={selectedUser} onChange={setSelectedUser}>
                       <div className="relative mt-1">
-                        <ListboxButton className="relative w-full cursor-default rounded-md border border-gray-300 bg-white py-2 pl-3 pr-10 text-left shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 sm:text-sm">
-                          <span className="block truncate">
-                            {selectedUser ? `${selectedUser.applicant_name} (${selectedUser.applicant_email})` : 'Pilih peserta...'}
-                          </span>
-                          <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+                        <div className="relative w-full cursor-default overflow-hidden rounded-md border border-gray-300 bg-white text-left shadow-sm focus-within:ring-1 focus-within:ring-blue-500 focus-within:border-blue-500 sm:text-sm">
+                          <ComboboxInput
+                            className="w-full border-none py-2 pl-3 pr-10 text-sm leading-5 text-gray-900 focus:ring-0"
+                            displayValue={(user) => user ? `${user.applicant_name} (${user.applicant_email})` : ''}
+                            onChange={(event) => setQuery(event.target.value)}
+                            placeholder="Ketik nama atau email..."
+                          />
+                          <ComboboxButton className="absolute inset-y-0 right-0 flex items-center pr-2">
                             <ChevronsUpDown className="h-5 w-5 text-gray-400" aria-hidden="true" />
-                          </span>
-                        </ListboxButton>
-                        <ListboxOptions className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
-                          {participants.filter(p => p.status === 'Tes Psikotes' || p.status === 'Psikotes').map((user) => (
-                            <ListboxOption
-                              key={user.id}
-                              className={({ active }) =>
-                                clsx(
-                                  active ? 'text-white bg-blue-600' : 'text-gray-900',
-                                  'relative cursor-default select-none py-2 pl-3 pr-9'
-                                )
-                              }
-                              value={user}
-                            >
-                              {({ selected, active }) => (
-                                <>
-                                  <span className={clsx(selected ? 'font-semibold' : 'font-normal', 'block truncate')}>
-                                    {user.applicant_name} ({user.job_title})
-                                  </span>
-                                  {selected ? (
-                                    <span
-                                      className={clsx(
-                                        active ? 'text-white' : 'text-blue-600',
-                                        'absolute inset-y-0 right-0 flex items-center pr-4'
-                                      )}
-                                    >
-                                      <Check className="h-5 w-5" aria-hidden="true" />
+                          </ComboboxButton>
+                        </div>
+                        <ComboboxOptions className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+                          {filteredParticipantsForSelection.length === 0 && query !== '' ? (
+                            <div className="relative cursor-default select-none py-2 px-4 text-gray-700">
+                              Tidak ada peserta ditemukan.
+                            </div>
+                          ) : (
+                            filteredParticipantsForSelection.map((user) => (
+                              <ComboboxOption
+                                key={user.id}
+                                className={({ active }) =>
+                                  clsx(
+                                    active ? 'text-white bg-blue-600' : 'text-gray-900',
+                                    'relative cursor-default select-none py-2 pl-3 pr-9'
+                                  )
+                                }
+                                value={user}
+                              >
+                                {({ selected, active }) => (
+                                  <>
+                                    <span className={clsx(selected ? 'font-semibold' : 'font-normal', 'block truncate')}>
+                                      {user.applicant_name} ({user.job_title})
                                     </span>
-                                  ) : null}
-                                </>
-                              )}
-                            </ListboxOption>
-                          ))}
-                        </ListboxOptions>
+                                    {selected ? (
+                                      <span
+                                        className={clsx(
+                                          active ? 'text-white' : 'text-blue-600',
+                                          'absolute inset-y-0 right-0 flex items-center pr-4'
+                                        )}
+                                      >
+                                        <Check className="h-5 w-5" aria-hidden="true" />
+                                      </span>
+                                    ) : null}
+                                  </>
+                                )}
+                              </ComboboxOption>
+                            ))
+                          )}
+                        </ComboboxOptions>
                       </div>
-                    </Listbox>
+                    </Combobox>
                   </div>
 
                   {generatedLinkForUser && (

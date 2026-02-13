@@ -182,8 +182,8 @@ class PsychotestController {
                  ResponseHelper::error("Invalid test link", 404);
              }
              
-             // Fix status check to include both legacy and new
-             if ($app['status'] !== 'Tes Psikotes' && $app['status'] !== 'Psikotes') {
+             // Fix status check to include normalized name
+             if ($app['status'] !== 'Psikotes') {
                  ResponseHelper::error("Test is not available for your current status", 403);
              }
 

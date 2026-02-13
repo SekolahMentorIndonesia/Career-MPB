@@ -25,6 +25,25 @@ class ApplicationController {
                         u.email as applicant_email,
                         u.photo as applicant_photo,
                         u.phone as applicant_phone,
+                        u.nik as applicant_nik,
+                        u.religion as applicant_religion,
+                        u.height as applicant_height,
+                        u.weight as applicant_weight,
+                        u.birth_place as applicant_birth_place,
+                        u.birth_date as applicant_birth_date,
+                        u.last_education as applicant_last_education,
+                        u.gpa as applicant_gpa,
+                        u.major as applicant_major,
+                        u.skills as applicant_skills,
+                        u.ktp_address as applicant_ktp_address,
+                        u.ktp_rt as applicant_ktp_rt,
+                        u.ktp_rw as applicant_ktp_rw,
+                        u.ktp_kabupaten as applicant_ktp_kabupaten,
+                        u.domicile_address as applicant_domicile_address,
+                        u.domicile_rt as applicant_domicile_rt,
+                        u.domicile_rw as applicant_domicile_rw,
+                        u.domicile_kabupaten as applicant_domicile_kabupaten,
+                        d.cv_url, d.ktp_url, d.portfolio_url, d.portfolio_link,
                         j.title as job_title,
                         MAX(p.score) as psychotest_score,
                         MAX(p.results) as psychotest_results,
@@ -33,8 +52,15 @@ class ApplicationController {
                       FROM applications a
                       JOIN users u ON a.user_id = u.id
                       JOIN jobs j ON a.job_id = j.id
+                      LEFT JOIN user_documents d ON u.id = d.user_id
                       LEFT JOIN psychotests p ON a.id = p.application_id
-                      GROUP BY a.id, a.user_id, a.job_id, a.status, a.created_at, a.rejected_at, u.name, u.email, u.photo, u.phone, j.title
+                      GROUP BY a.id, a.user_id, a.job_id, a.status, a.created_at, a.rejected_at, 
+                               u.name, u.email, u.photo, u.phone, u.nik, u.religion, u.height, u.weight, 
+                               u.birth_place, u.birth_date, u.last_education, u.gpa, u.major, u.skills,
+                               u.ktp_address, u.ktp_rt, u.ktp_rw, u.ktp_kabupaten,
+                               u.domicile_address, u.domicile_rt, u.domicile_rw, u.domicile_kabupaten,
+                               d.cv_url, d.ktp_url, d.portfolio_url, d.portfolio_link,
+                               j.title
                       ORDER BY a.created_at DESC";
             
             $stmt = $this->db->prepare($query);
@@ -249,14 +275,30 @@ class ApplicationController {
             }
 
             // Update main application table
-            $finalStatus = 'pending';
             if ($isRejected) {
-                $finalStatus = 'Ditolak';
-                $updSql = "UPDATE applications SET status = 'Ditolak', rejected_at = NOW() WHERE id = :id";
-                $this->db->prepare($updSql)->execute([':id' => $applicationId]);
+                // Determine which stage is being rejected. 
+                // If the input status is a specific stage, use it. Otherwise use the application's current status if valid.
+                $actualRejectedStage = $normalizedTarget;
+                
+                // If it's a general 'reject' without a specific stage change, we try to use the current status
+                $appCheck = $this->db->prepare("SELECT status FROM applications WHERE id = :id");
+                $appCheck->execute([':id' => $applicationId]);
+                $currentAppStatus = $appCheck->fetchColumn();
+                
+                if ($currentAppStatus && in_array($currentAppStatus, $stages)) {
+                    $actualRejectedStage = $currentAppStatus;
+                }
+
+                // Update the specific stage to 'rejected'
+                $this->db->prepare("UPDATE application_stages SET status = 'rejected', updated_at = NOW() 
+                                  WHERE application_id = :app_id AND stage_name = :stage")
+                         ->execute([':app_id' => $applicationId, ':stage' => $actualRejectedStage]);
+
+                $this->db->prepare("UPDATE applications SET status = 'Ditolak', rejected_at = NOW() WHERE id = :id")
+                         ->execute([':id' => $applicationId]);
             } elseif ($isAccepted && $normalizedTarget === 'Final') {
-                $finalStatus = 'Diterima';
-                $this->db->prepare("UPDATE applications SET status = 'Diterima' WHERE id = :id")->execute([':id' => $applicationId]);
+                $this->db->prepare("UPDATE applications SET status = 'Diterima' WHERE id = :id")
+                         ->execute([':id' => $applicationId]);
             } else {
                 // Moving forward
                 $this->db->prepare("UPDATE applications SET status = :status WHERE id = :id")
@@ -265,12 +307,14 @@ class ApplicationController {
 
             // Handle notifications
             if ($isRejected) {
-                $this->sendNotification($applicationId, "Lamaran Ditolak", "Maaf, Anda belum dapat lanjut ke tahap berikutnya.");
+                $this->sendNotification($applicationId, "Lamaran Ditolak", "Maaf, lamaran Anda belum dapat dilanjutkan ke tahap berikutnya. Terima kasih atas partisipasi Anda.");
             } elseif ($normalizedTarget === 'Psikotes') {
-                $this->sendNotification($applicationId, "Seleksi Tahap Psikotes", "Selamat! Anda lanjut ke tahap Psikotes.");
+                $this->sendNotification($applicationId, "Seleksi Tahap Psikotes", "Selamat! Anda lulus ke tahap Psikotes. Mohon tunggu tim Recruitment kami menghubungi Anda melalui Gmail, WhatsApp, atau dashboard ini untuk jadwal dan langkah selanjutnya.");
                 $this->db->prepare("INSERT IGNORE INTO psychotests (application_id) VALUES (:id)")->execute([':id' => $applicationId]);
             } elseif ($normalizedTarget === 'Interview') {
-                $this->sendNotification($applicationId, "Undangan Interview", "Selamat! Anda lanjut ke tahap Interview.");
+                $this->sendNotification($applicationId, "Undangan Interview", "Selamat! Anda lulus ke tahap Interview. Mohon tunggu tim Recruitment kami menghubungi Anda melalui Gmail, WhatsApp, atau dashboard ini untuk jadwal dan langkah selanjutnya.");
+            } elseif ($isAccepted && $normalizedTarget === 'Final') {
+                $this->sendNotification($applicationId, "Lamaran Diterima", "Selamat! Anda telah dinyatakan DITERIMA (Accepted) di MPB Group. Mohon tunggu tim Recruitment kami menghubungi Anda melalui Gmail, WhatsApp, atau dashboard ini untuk proses Onboarding.");
             }
 
             $this->db->commit();

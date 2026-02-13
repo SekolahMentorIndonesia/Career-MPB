@@ -87,7 +87,7 @@ class NotificationController {
                         <hr>
                         <p>" . nl2br(htmlspecialchars($data['message'])) . "</p>
                         <br>
-                        <p><small>Dikirim dari sistem MPB Karir</small></p>
+                        <p><small>Dikirim dari sistem Recruitment - MPB Group</small></p>
                     ";
                     
                     if (\App\Helpers\EmailHelper::send($userEmail, $data['title'], $emailBody)) {

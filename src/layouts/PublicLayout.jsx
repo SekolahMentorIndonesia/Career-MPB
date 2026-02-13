@@ -16,7 +16,7 @@ const PublicLayout = () => {
           {/* Left: Logo */}
           <Link to="/" className="flex items-center gap-3 group">
             <div className="w-10 h-10 bg-[#0F172A] rounded-lg flex items-center justify-center shadow-sm group-hover:shadow-md transition-all">
-              <img src="/logo.webp" alt="Logo" className="w-full h-full object-contain p-1" />
+              <img src="/logo.webp" alt="Logo MPB Corps - Multiusaha Prioritas Bersama" className="w-full h-full object-contain p-1" />
             </div>
             <div className="flex flex-col">
               <span className="text-base font-bold text-gray-900 leading-none mb-1">MPB Corps</span>
@@ -123,6 +123,9 @@ const PublicLayout = () => {
             <button
               className="md:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-lg"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              aria-expanded={isMobileMenuOpen}
+              aria-label={isMobileMenuOpen ? "Tutup menu navigasi" : "Buka menu navigasi"}
+              title={isMobileMenuOpen ? "Tutup menu" : "Buka menu"}
             >
               {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
@@ -176,22 +179,19 @@ const PublicLayout = () => {
             <div className="lg:col-span-4 space-y-6">
               <div className="space-y-2">
                 <h3 className="text-2xl font-black text-white tracking-tight">MPB Corps</h3>
-                <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-slate-400">Multiusaha Prioritas Bersama</p>
+                <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-slate-300">Multiusaha Prioritas Bersama</p>
               </div>
-              <p className="text-sm leading-relaxed text-slate-400 max-w-sm">
+              <p className="text-sm leading-relaxed text-slate-300 max-w-sm">
                 Perusahaan induk yang membangun ekosistem bisnis berkelanjutan dan inovatif melalui sinergi berbagai unit usaha strategis.
               </p>
-            </div>
-
-            {/* Column 2: Unit Bisnis */}
-            <div className="lg:col-span-2 space-y-6">
-              <h4 className="text-xs font-black text-white uppercase tracking-[0.15em] relative inline-block pb-2 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-8 after:h-px after:bg-blue-500">Unit Bisnis</h4>
-              <ul className="space-y-3">
-                <li className="flex items-center gap-2 group cursor-pointer text-slate-400 hover:text-white transition-colors">
-                  <span className="w-1 h-1 rounded-full bg-blue-500"></span>
-                  <span className="text-sm">Sekolah Mentor Indonesia</span>
-                </li>
-              </ul>
+              <div className="flex items-center gap-4 pt-2">
+                <Link to="https://instagram.com/" aria-label="Kunjungi Instagram MPB Corps" className="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center hover:bg-pink-600 transition-all group">
+                  <Instagram className="w-5 h-5 text-slate-400 group-hover:text-white transition-colors" />
+                </Link>
+                <a href="https://wa.me/6281915020498" target="_blank" rel="noopener noreferrer" aria-label="Hubungi kami melalui WhatsApp" className="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center hover:bg-emerald-600 transition-all group">
+                  <MessageCircle className="w-5 h-5 text-slate-400 group-hover:text-white transition-colors" />
+                </a>
+              </div>
             </div>
 
             {/* Column 3: Hubungi Kami */}
@@ -200,21 +200,21 @@ const PublicLayout = () => {
               <ul className="space-y-4">
                 <li className="flex items-start gap-4">
                   <MapPin className="w-5 h-5 text-blue-500 shrink-0" />
-                  <div className="text-sm leading-snug text-slate-400">
+                  <div className="text-sm leading-snug text-slate-300">
                     <span className="block text-white font-medium mb-1 line-clamp-2">Bekasi, Jawa Barat, Indonesia</span>
                   </div>
                 </li>
                 <li className="flex items-center gap-4">
                   <Phone className="w-5 h-5 text-blue-500 shrink-0" />
-                  <a href="tel:+6281915020498" className="text-sm text-slate-400 hover:text-white transition-colors">+62 819-1502-0498</a>
+                  <a href="tel:+6281915020498" aria-label="Hubungi kami melalui Telepon" className="text-sm text-slate-300 hover:text-white transition-colors">+62 819-1502-0498</a>
                 </li>
                 <li className="flex items-center gap-4">
                   <MessageCircle className="w-5 h-5 text-blue-500 shrink-0" />
-                  <a href="https://wa.me/6281915020498" target="_blank" rel="noopener noreferrer" className="text-sm text-slate-400 hover:text-white transition-colors">+62 819-1502-0498</a>
+                  <a href="https://wa.me/6281915020498" target="_blank" rel="noopener noreferrer" aria-label="Hubungi kami melalui WhatsApp" className="text-sm text-slate-300 hover:text-white transition-colors">+62 819-1502-0498</a>
                 </li>
                 <li className="flex items-center gap-4">
                   <Mail className="w-5 h-5 text-blue-500 shrink-0" />
-                  <a href="mailto:multiusahaprioritasbersama@gmail.com" className="text-sm break-all text-slate-400 hover:text-white transition-colors">multiusahaprioritasbersama@gmail.com</a>
+                  <a href="mailto:multiusahaprioritasbersama@gmail.com" aria-label="Hubungi kami melalui Email" className="text-sm break-all text-slate-300 hover:text-white transition-colors">multiusahaprioritasbersama@gmail.com</a>
                 </li>
               </ul>
             </div>
@@ -242,11 +242,11 @@ const PublicLayout = () => {
 
           {/* Bottom Bar */}
           <div className="pt-8 border-t border-slate-800 flex flex-col md:flex-row items-center justify-between gap-4">
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-slate-300 font-medium">
               © {new Date().getFullYear()} PT Multiusaha Prioritas Bersama. All rights reserved.
             </p>
-            <p className="text-xs text-slate-500">
-              Powered by <span className="font-bold text-slate-400">MPB Group</span>
+            <p className="text-xs text-slate-300">
+              Powered by <span className="font-bold text-white">MPB Group</span>
             </p>
           </div>
         </div>

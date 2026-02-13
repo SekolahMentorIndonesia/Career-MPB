@@ -23,7 +23,7 @@ class EmailHelper {
         $this->password = Env::get('SMTP_PASS');
         // Specific requirement: recruitment@multipriority.com
         $this->from = Env::get('SMTP_FROM', 'recruitment@multipriority.com');
-        $this->fromName = Env::get('SMTP_NAME', 'MPB Karir Recruitment');
+        $this->fromName = Env::get('SMTP_NAME', 'Recruitment - MPB Group');
     }
 
     public static function send($to, $subject, $body, $from = null, $fromName = null) {
@@ -86,17 +86,21 @@ class EmailHelper {
             throw new Exception("SMTP credentials missing");
         }
 
-        $socket = fsockopen(($this->port == 465 ? "ssl://" : "") . $this->host, $this->port, $errno, $errstr, 10);
+        error_log("Attempting SMTP connection to {$this->host}:{$this->port}");
+        $socket = fsockopen(($this->port == 465 ? "ssl://" : "") . $this->host, $this->port, $errno, $errstr, 30);
         if (!$socket) {
+            error_log("SMTP Connection Failed: $errstr ($errno)");
             throw new Exception("Could not connect to SMTP host: $errstr");
         }
 
-        $this->serverCmd($socket, "220"); // Welcome
+        $this->serverCmd($socket, null, "220"); // Welcome (null means just read)
         $this->serverCmd($socket, "EHLO " . $this->host, "250"); // Hello
 
         if ($this->port == 587) {
             $this->serverCmd($socket, "STARTTLS", "220");
-            stream_socket_enable_crypto($socket, true, STREAM_CRYPTO_METHOD_TLS_CLIENT);
+            if (!stream_socket_enable_crypto($socket, true, STREAM_CRYPTO_METHOD_TLS_CLIENT)) {
+                throw new Exception("Failed to enable crypto for STARTTLS");
+            }
             $this->serverCmd($socket, "EHLO " . $this->host, "250");
         }
 
@@ -113,6 +117,8 @@ class EmailHelper {
         $headers .= "From: " . $this->fromName . " <" . $this->from . ">\r\n";
         $headers .= "To: <" . $to . ">\r\n";
         $headers .= "Subject: " . $subject . "\r\n";
+        $headers .= "Date: " . date('r') . "\r\n";
+        $headers .= "Message-ID: <" . time() . "-" . md5($to) . "@" . $this->host . ">\r\n";
 
         fwrite($socket, $headers . "\r\n" . $body . "\r\n.\r\n");
         $this->getServerResponse($socket, "250");
@@ -120,11 +126,17 @@ class EmailHelper {
         $this->serverCmd($socket, "QUIT", "221");
         fclose($socket);
 
+        error_log("SMTP: Success sending email to $to");
         return true;
     }
 
     private function serverCmd($socket, $cmd, $expect) {
-        fwrite($socket, $cmd . "\r\n");
+        if ($cmd !== null) {
+            fwrite($socket, $cmd . "\r\n");
+            // Don't log passwords
+            $logCmd = (strpos($cmd, 'AUTH') === false && strlen($cmd) < 50) ? $cmd : "[HIDDEN COMMAND]";
+            error_log("SMTP Send: $logCmd");
+        }
         return $this->getServerResponse($socket, $expect);
     }
 
@@ -132,11 +144,14 @@ class EmailHelper {
         $response = "";
         while (substr($response, 3, 1) != ' ') {
             if (!($line = fgets($socket, 515))) {
+                error_log("SMTP Error: Unexpected end of stream while waiting for $expect");
                 throw new Exception("Unexpected end of stream");
             }
             $response = $line;
+            error_log("SMTP Recv: " . trim($response));
         }
         if (substr($response, 0, 3) != $expect) {
+            error_log("SMTP Error: Expected $expect, got $response");
             throw new Exception("SMTP Error: Expected $expect, got $response");
         }
         return $response;

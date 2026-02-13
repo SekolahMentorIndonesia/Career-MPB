@@ -8,10 +8,17 @@ import router from './router';
 import './index.css';
 
 // Define global API URL for production compatibility
-const hostname = window.location.hostname;
-window.API_BASE_URL = (hostname === 'localhost' || hostname === '127.0.0.1')
-  ? `http://${hostname}:8000`
-  : '/backend'; // Production path (relative to root)
+if (!window.API_BASE_URL) {
+  const hostname = window.location.hostname;
+  window.API_BASE_URL = (hostname === 'localhost' || hostname === '127.0.0.1')
+    ? `http://${hostname}:8000`
+    : window.location.origin + '/backend'; // Absolute path for production
+}
+
+// Ensure no trailing slash for consistency
+if (window.API_BASE_URL.endsWith('/')) {
+  window.API_BASE_URL = window.API_BASE_URL.slice(0, -1);
+}
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
