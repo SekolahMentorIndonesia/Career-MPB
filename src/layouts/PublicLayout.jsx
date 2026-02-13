@@ -28,7 +28,7 @@ const PublicLayout = () => {
           <div className="flex items-center gap-4 sm:gap-6 md:gap-8">
             {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center gap-8">
-              <Link to="/" className="text-sm font-semibold text-gray-900 hover:text-blue-600 transition-colors">
+              <Link to="https://multipriority.com/" className="text-sm font-semibold text-gray-900 hover:text-blue-600 transition-colors">
                 Home
               </Link>
               <div className="relative group cursor-pointer">
@@ -38,15 +38,33 @@ const PublicLayout = () => {
                 {/* Dropdown Placeholder */}
                 <div className="absolute top-full left-0 mt-2 w-48 bg-white border rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all transform translate-y-2 group-hover:translate-y-0 z-50">
                   <div className="py-2">
-                    <Link to="/about" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-blue-600">Tentang Kami</Link>
-                    <Link to="/vision" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-blue-600">Visi & Misi</Link>
+                    <Link to="https://multipriority.com/" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-blue-600">Tentang Kami</Link>
+                    <Link to="https://multipriority.com/" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-blue-600">Visi & Misi</Link>
+                    <Link to="https://multipriority.com/" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-blue-600">Management Perseroan</Link>
+                    <Link to="https://multipriority.com/" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-blue-600">Struktur Perseroan</Link>
                   </div>
                 </div>
               </div>
-              <Link to="/#karir-section" className="text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors">
+              <div className="relative group cursor-pointer">
+                <div className="flex items-center gap-1 text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors">
+                  Layanan Kami <ChevronDown className="w-4 h-4" />
+                </div>
+                <div className="absolute top-full left-0 mt-2 w-64 bg-white border rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all transform translate-y-2 group-hover:translate-y-0 z-50">
+                  <div className="py-2">
+                    <Link to="https://smi.multipriority.com/" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-blue-600">Edukasi & Pengembangan Talenta</Link>
+                    <Link to="https://multipriority.com/" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-blue-600">Telekomunikasi Digital</Link>
+                    <Link to="https://multipriority.com/Product-Pusat-Laptop-Bekasi" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-blue-600">Perdagangan Laptop & Ponsel</Link>
+                    <Link to="https://multipriority.com/Product-IQICorps" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-blue-600">Jasa Digital & Branding</Link>
+                    <Link to="https://multipriority.com/" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-blue-600">Pariwisata & Manajemen Acara</Link>
+                    <Link to="https://multipriority.com/" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-blue-600">Desain & Percetakan Kreatif</Link>
+                    <Link to="https://multipriority.com/" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-blue-600">Produksi Kreatif & Hiburan</Link>
+                  </div>
+                </div>
+              </div>
+              <Link to="https://recruitment.multipriority.com/" className="text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors">
                 Karir
               </Link>
-              <Link to="/contact" className="text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors">
+              <Link to="https://multipriority.com/" className="text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors">
                 Hubungi Kami
               </Link>
             </nav>
@@ -116,7 +134,18 @@ const PublicLayout = () => {
           <div className="md:hidden border-t bg-white">
             <div className="px-4 pt-2 pb-6 space-y-2">
               <Link to="/" className="block py-3 text-base font-medium text-gray-900 border-b border-gray-100">Home</Link>
-              <Link to="/#karir-section" className="block py-3 text-base font-medium text-gray-600 border-b border-gray-100">Karir</Link>
+              <div className="py-2 space-y-1">
+                <p className="px-1 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Layanan Kami</p>
+                <Link to="https://multipriority.com/" className="block py-2 text-sm text-gray-600 hover:text-blue-600">Edukasi & Pengembangan Talenta</Link>
+                <Link to="https://multipriority.com/" className="block py-2 text-sm text-gray-600 hover:text-blue-600">Telekomunikasi Digital</Link>
+                <Link to="https://multipriority.com/" className="block py-2 text-sm text-gray-600 hover:text-blue-600">Perdagangan Laptop & Ponsel</Link>
+                <Link to="https://multipriority.com/" className="block py-2 text-sm text-gray-600 hover:text-blue-600">Jasa Digital & Branding</Link>
+                <Link to="https://multipriority.com/" className="block py-2 text-sm text-gray-600 hover:text-blue-600">Product IQI Corps</Link>
+                <Link to="https://multipriority.com/" className="block py-2 text-sm text-gray-600 hover:text-blue-600">Pariwisata & Manajemen Acara</Link>
+                <Link to="https://multipriority.com/" className="block py-2 text-sm text-gray-600 hover:text-blue-600">Desain & Percetakan Kreatif</Link>
+                <Link to="https://multipriority.com/" className="block py-2 text-sm text-gray-600 hover:text-blue-600">Produksi Kreatif & Hiburan</Link>
+              </div>
+              <Link to="https://recruitment.multipriority.com/" className="block py-3 text-base font-medium text-gray-600 border-b border-gray-100">Karir</Link>
               <Link to="/contact" className="block py-3 text-base font-medium text-gray-600 border-b border-gray-100">Hubungi Kami</Link>
 
               {!isAuthenticated && (
