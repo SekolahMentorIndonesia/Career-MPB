@@ -51,15 +51,7 @@ const PublicLayout = () => {
               </Link>
             </nav>
 
-            {/* Language Selector */}
-            <div className="hidden lg:flex items-center gap-2 text-gray-600 cursor-pointer hover:text-gray-900">
-              <Globe className="w-5 h-5" />
-              <span className="text-sm font-medium">ID</span>
-              <ChevronDown className="w-3.5 h-3.5" />
-            </div>
 
-            {/* Divider */}
-            <div className="hidden lg:block h-8 w-px bg-gray-200"></div>
 
             {/* Auth Actions */}
             {isAuthenticated ? (
