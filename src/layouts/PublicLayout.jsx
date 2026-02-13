@@ -1,6 +1,6 @@
 import { Link, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { Globe, ChevronDown, Menu, X } from 'lucide-react';
+import { Globe, ChevronDown, Menu, X, Instagram, MapPin, Phone, Mail, MessageCircle } from 'lucide-react';
 import { useState } from 'react';
 
 const PublicLayout = () => {
@@ -169,9 +169,95 @@ const PublicLayout = () => {
       </main>
 
       {/* Footer */}
-      <footer className="bg-gray-50 border-t py-12">
-        <div className="max-w-7xl mx-auto px-4 text-center text-gray-500">
-          <p>&copy; {new Date().getFullYear()} Karir Platform. All rights reserved.</p>
+      <footer className="bg-[#0F172A] text-gray-300 pt-16 pb-8 border-t border-slate-800">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-12 lg:gap-8 mb-16">
+            {/* Column 1: Brand & Desc */}
+            <div className="lg:col-span-4 space-y-6">
+              <div className="space-y-2">
+                <h3 className="text-2xl font-black text-white tracking-tight">MPB Corps</h3>
+                <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-slate-400">Multiusaha Prioritas Bersama</p>
+              </div>
+              <p className="text-sm leading-relaxed text-slate-400 max-w-sm">
+                Perusahaan induk yang membangun ekosistem bisnis berkelanjutan dan inovatif melalui sinergi berbagai unit usaha strategis.
+              </p>
+              <div className="flex items-center gap-4 pt-2">
+                <Link to="https://instagram.com/" className="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center hover:bg-pink-600 transition-all group">
+                  <Instagram className="w-5 h-5 text-slate-400 group-hover:text-white transition-colors" />
+                </Link>
+                <Link to="https://wa.me/6281915020498" className="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center hover:bg-emerald-600 transition-all group">
+                  <MessageCircle className="w-5 h-5 text-slate-400 group-hover:text-white transition-colors" />
+                </Link>
+              </div>
+            </div>
+
+            {/* Column 2: Unit Bisnis */}
+            <div className="lg:col-span-2 space-y-6">
+              <h4 className="text-xs font-black text-white uppercase tracking-[0.15em] relative inline-block pb-2 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-8 after:h-px after:bg-blue-500">Unit Bisnis</h4>
+              <ul className="space-y-3">
+                <li className="flex items-center gap-2 group cursor-pointer text-slate-400 hover:text-white transition-colors">
+                  <span className="w-1 h-1 rounded-full bg-blue-500"></span>
+                  <span className="text-sm">Sekolah Mentor Indonesia</span>
+                </li>
+              </ul>
+            </div>
+
+            {/* Column 3: Hubungi Kami */}
+            <div className="lg:col-span-3 space-y-6">
+              <h4 className="text-xs font-black text-white uppercase tracking-[0.15em] relative inline-block pb-2 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-8 after:h-px after:bg-blue-500">Hubungi Kami</h4>
+              <ul className="space-y-4">
+                <li className="flex items-start gap-4">
+                  <MapPin className="w-5 h-5 text-blue-500 shrink-0" />
+                  <div className="text-sm leading-snug text-slate-400">
+                    <span className="block text-white font-medium mb-1 line-clamp-2">Bekasi, Jawa Barat</span>
+                    Indonesia
+                  </div>
+                </li>
+                <li className="flex items-center gap-4">
+                  <Phone className="w-5 h-5 text-blue-500 shrink-0" />
+                  <span className="text-sm text-slate-400">+62 819-1502-0498</span>
+                </li>
+                <li className="flex items-center gap-4">
+                  <MessageCircle className="w-5 h-5 text-blue-500 shrink-0" />
+                  <span className="text-sm text-slate-400">+62 819-1502-0498</span>
+                </li>
+                <li className="flex items-center gap-4">
+                  <Mail className="w-5 h-5 text-blue-500 shrink-0" />
+                  <span className="text-sm break-all text-slate-400">multiusahaprioritasbersama@gmail.com</span>
+                </li>
+              </ul>
+            </div>
+
+            {/* Column 4: Perusahaan */}
+            <div className="lg:col-span-1.5 space-y-6">
+              <h4 className="text-xs font-black text-white uppercase tracking-[0.15em] relative inline-block pb-2 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-8 after:h-px after:bg-blue-500">Perusahaan</h4>
+              <ul className="space-y-3">
+                <li><Link to="https://multipriority.com/" className="text-sm hover:text-white transition-colors">Tentang Kami</Link></li>
+                <li><Link to="https://multipriority.com/" className="text-sm hover:text-white transition-colors">Visi & Misi</Link></li>
+                <li><Link to="https://multipriority.com/" className="text-sm hover:text-white transition-colors">Struktur Perseroan</Link></li>
+                <li><Link to="https://multipriority.com/" className="text-sm hover:text-white transition-colors">Hubungi Kami</Link></li>
+              </ul>
+            </div>
+
+            {/* Column 5: Legal */}
+            <div className="lg:col-span-1.5 space-y-6">
+              <h4 className="text-xs font-black text-white uppercase tracking-[0.15em] relative inline-block pb-2 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-8 after:h-px after:bg-blue-500">Legal</h4>
+              <ul className="space-y-3">
+                <li><Link to="#" className="text-sm hover:text-white transition-colors">Kebijakan Privasi</Link></li>
+                <li><Link to="#" className="text-sm hover:text-white transition-colors">Syarat & Ketentuan</Link></li>
+              </ul>
+            </div>
+          </div>
+
+          {/* Bottom Bar */}
+          <div className="pt-8 border-t border-slate-800 flex flex-col md:flex-row items-center justify-between gap-4">
+            <p className="text-xs text-slate-500">
+              © {new Date().getFullYear()} PT Multiusaha Prioritas Bersama. All rights reserved.
+            </p>
+            <p className="text-xs text-slate-500">
+              Powered by <span className="font-bold text-slate-400">MPB Group</span>
+            </p>
+          </div>
         </div>
       </footer>
     </div>
