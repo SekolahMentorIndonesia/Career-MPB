@@ -181,14 +181,6 @@ const PublicLayout = () => {
               <p className="text-sm leading-relaxed text-slate-400 max-w-sm">
                 Perusahaan induk yang membangun ekosistem bisnis berkelanjutan dan inovatif melalui sinergi berbagai unit usaha strategis.
               </p>
-              <div className="flex items-center gap-4 pt-2">
-                <Link to="https://instagram.com/" className="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center hover:bg-pink-600 transition-all group">
-                  <Instagram className="w-5 h-5 text-slate-400 group-hover:text-white transition-colors" />
-                </Link>
-                <Link to="https://wa.me/6281915020498" className="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center hover:bg-emerald-600 transition-all group">
-                  <MessageCircle className="w-5 h-5 text-slate-400 group-hover:text-white transition-colors" />
-                </Link>
-              </div>
             </div>
 
             {/* Column 2: Unit Bisnis */}
@@ -209,27 +201,26 @@ const PublicLayout = () => {
                 <li className="flex items-start gap-4">
                   <MapPin className="w-5 h-5 text-blue-500 shrink-0" />
                   <div className="text-sm leading-snug text-slate-400">
-                    <span className="block text-white font-medium mb-1 line-clamp-2">Bekasi, Jawa Barat</span>
-                    Indonesia
+                    <span className="block text-white font-medium mb-1 line-clamp-2">Bekasi, Jawa Barat, Indonesia</span>
                   </div>
                 </li>
                 <li className="flex items-center gap-4">
                   <Phone className="w-5 h-5 text-blue-500 shrink-0" />
-                  <span className="text-sm text-slate-400">+62 819-1502-0498</span>
+                  <a href="tel:+6281915020498" className="text-sm text-slate-400 hover:text-white transition-colors">+62 819-1502-0498</a>
                 </li>
                 <li className="flex items-center gap-4">
                   <MessageCircle className="w-5 h-5 text-blue-500 shrink-0" />
-                  <span className="text-sm text-slate-400">+62 819-1502-0498</span>
+                  <a href="https://wa.me/6281915020498" target="_blank" rel="noopener noreferrer" className="text-sm text-slate-400 hover:text-white transition-colors">+62 819-1502-0498</a>
                 </li>
                 <li className="flex items-center gap-4">
                   <Mail className="w-5 h-5 text-blue-500 shrink-0" />
-                  <span className="text-sm break-all text-slate-400">multiusahaprioritasbersama@gmail.com</span>
+                  <a href="mailto:multiusahaprioritasbersama@gmail.com" className="text-sm break-all text-slate-400 hover:text-white transition-colors">multiusahaprioritasbersama@gmail.com</a>
                 </li>
               </ul>
             </div>
 
             {/* Column 4: Perusahaan */}
-            <div className="lg:col-span-1.5 space-y-6">
+            <div className="lg:col-span-2 space-y-6">
               <h4 className="text-xs font-black text-white uppercase tracking-[0.15em] relative inline-block pb-2 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-8 after:h-px after:bg-blue-500">Perusahaan</h4>
               <ul className="space-y-3">
                 <li><Link to="https://multipriority.com/" className="text-sm hover:text-white transition-colors">Tentang Kami</Link></li>
@@ -240,7 +231,7 @@ const PublicLayout = () => {
             </div>
 
             {/* Column 5: Legal */}
-            <div className="lg:col-span-1.5 space-y-6">
+            <div className="lg:col-span-1 space-y-6">
               <h4 className="text-xs font-black text-white uppercase tracking-[0.15em] relative inline-block pb-2 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-8 after:h-px after:bg-blue-500">Legal</h4>
               <ul className="space-y-3">
                 <li><Link to="#" className="text-sm hover:text-white transition-colors">Kebijakan Privasi</Link></li>
