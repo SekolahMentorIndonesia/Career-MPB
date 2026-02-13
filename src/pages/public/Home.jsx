@@ -1,11 +1,22 @@
-import { useContext } from 'react';
-import { Link } from 'react-router-dom';
+import { useContext, useEffect } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { ArrowRight, CheckCircle, Briefcase, Users, TrendingUp } from 'lucide-react';
 import JobSearchSection from '../../components/JobSearchSection';
 import { AuthContext } from '../../context/AuthContext';
 
 const Home = () => {
   const { user } = useContext(AuthContext);
+  const { hash } = useLocation();
+
+  useEffect(() => {
+    if (hash) {
+      const element = document.getElementById(hash.substring(1));
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+  }, [hash]);
+
   return (
     <div className="space-y-20 pb-20">
 

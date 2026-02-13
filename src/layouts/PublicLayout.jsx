@@ -19,7 +19,7 @@ const PublicLayout = () => {
               <img src="/logo.webp" alt="Logo MPB Corps - Multiusaha Prioritas Bersama" className="w-full h-full object-contain p-1" />
             </div>
             <div className="flex flex-col">
-              <span className="text-base font-bold text-gray-900 leading-none mb-1">MPB Corps</span>
+              <span className="text-base font-bold text-gray-900 leading-none mb-1">MPB Group</span>
               <span className="text-[10px] font-medium text-gray-500 tracking-wide">Multiusaha Prioritas Bersama</span>
             </div>
           </Link>
@@ -178,7 +178,7 @@ const PublicLayout = () => {
             {/* Column 1: Brand & Desc */}
             <div className="lg:col-span-4 space-y-6">
               <div className="space-y-2">
-                <h3 className="text-2xl font-black text-white tracking-tight">MPB Corps</h3>
+                <h3 className="text-2xl font-black text-white tracking-tight">MPB Group</h3>
                 <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-slate-300">Multiusaha Prioritas Bersama</p>
               </div>
               <p className="text-sm leading-relaxed text-slate-300 max-w-sm">
