@@ -107,6 +107,28 @@ class UserController {
             ResponseHelper::error("No fields to update");
         }
 
+        // --- Uniqueness Validations ---
+        // 1. Phone Uniqueness
+        if (isset($data['phone']) && !empty($data['phone']) && $data['phone'] !== $currUser['phone']) {
+            $checkPhone = "SELECT id FROM users WHERE phone = :phone AND id != :id LIMIT 1";
+            $stmtPhone = $this->db->prepare($checkPhone);
+            $stmtPhone->execute([':phone' => $data['phone'], ':id' => $user['id']]);
+            if ($stmtPhone->fetch()) {
+                ResponseHelper::error("Nomor sudah digunakan / terdaftar", 409);
+            }
+        }
+
+        // 2. Email Uniqueness
+        if (isset($data['email']) && !empty($data['email']) && $data['email'] !== $currUser['email']) {
+            $checkEmail = "SELECT id FROM users WHERE email = :email AND id != :id LIMIT 1";
+            $stmtEmail = $this->db->prepare($checkEmail);
+            $stmtEmail->execute([':email' => $data['email'], ':id' => $user['id']]);
+            if ($stmtEmail->fetch()) {
+                ResponseHelper::error("Email sudah digunakan / terdaftar", 409);
+            }
+        }
+        // ------------------------------
+
         try {
             $query = "UPDATE users SET " . implode(", ", $updateParts) . " WHERE id = :id";
             $stmt = $this->db->prepare($query);
@@ -117,6 +139,15 @@ class UserController {
                 ResponseHelper::error("Failed to update profile", 500);
             }
         } catch (\PDOException $e) {
+            if ($e->getCode() == 23000) {
+                if (strpos($e->getMessage(), 'phone') !== false) {
+                    ResponseHelper::error("Nomor sudah digunakan / terdaftar", 409);
+                }
+                if (strpos($e->getMessage(), 'email') !== false) {
+                    ResponseHelper::error("Email sudah digunakan / terdaftar", 409);
+                }
+                ResponseHelper::error("Data sudah digunakan / terdaftar", 409);
+            }
             ResponseHelper::error("Database error: " . $e->getMessage(), 500);
         }
     }
@@ -220,6 +251,14 @@ class UserController {
 
             if (!isset($data->phone)) {
                 ResponseHelper::error("Phone number is required");
+            }
+
+            // Check if phone already exists for another user
+            $checkPhone = "SELECT id FROM users WHERE phone = :phone AND id != :id LIMIT 1";
+            $stmtPhone = $this->db->prepare($checkPhone);
+            $stmtPhone->execute([':phone' => $data->phone, ':id' => $user['id']]);
+            if ($stmtPhone->fetch()) {
+                ResponseHelper::error("Nomor sudah digunakan", 409);
             }
 
             $otp = sprintf("%06d", mt_rand(1, 999999));
