@@ -115,7 +115,7 @@ const JobDetail = () => {
                   : 'bg-gray-200 text-gray-400 cursor-not-allowed shadow-none pointer-events-none'
                   }`}
               >
-                {isJobOpen(job) ? 'Lamar Sekarang' : 'Pendaftaran Tutup'}
+                {isJobOpen(job) ? (user ? 'Lamar Sekarang' : 'Login untuk Melamar') : 'Pendaftaran Tutup'}
               </Link>
             </>
           )}

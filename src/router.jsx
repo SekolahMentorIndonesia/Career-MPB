@@ -51,7 +51,14 @@ const router = createBrowserRouter([
     children: [
       { index: true, element: <Home /> },
       { path: 'jobs/:slug/details', element: <JobDetail /> },
-      { path: 'apply/:jobId', element: <Apply /> },
+      { 
+        path: 'apply/:jobId', 
+        element: (
+          <ProtectedRoute requiredRole="USER">
+            <Apply />
+          </ProtectedRoute>
+        ) 
+      },
     ],
   },
   {

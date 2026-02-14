@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Eye, Check, X, Search, Briefcase, ChevronsUpDown, User, Loader2, FileText, Image, Award, Link as LinkIcon, AlertCircle, Layout, FolderOpen, ScrollText, CheckCircle, XCircle } from 'lucide-react';
-import { Listbox, ListboxButton, ListboxOptions, ListboxOption } from '@headlessui/react';
+import { Listbox, ListboxButton, ListboxOptions, ListboxOption, Combobox, ComboboxButton, ComboboxInput, ComboboxOption, ComboboxOptions } from '@headlessui/react';
 import { useNotification } from '../../context/NotificationContext';
 import ConfirmationModal from '../../components/ConfirmationModal';
 import clsx from 'clsx';
@@ -61,6 +61,15 @@ const AdminApplicants = () => {
     message: ''
   });
   const [isSending, setIsSending] = useState(false);
+  const [notifQuery, setNotifQuery] = useState('');
+  const [isConfirmationStep, setIsConfirmationStep] = useState(false);
+
+  const filteredApplicantsForNotif = notifQuery === ''
+    ? applicants
+    : applicants.filter(app =>
+      app.applicant_name.toLowerCase().includes(notifQuery.toLowerCase()) ||
+      app.applicant_email.toLowerCase().includes(notifQuery.toLowerCase())
+    );
 
   // Generic Confirmation Modal State
   const [confirmAction, setConfirmAction] = useState(null);
@@ -216,14 +225,43 @@ const AdminApplicants = () => {
       subject: '',
       message: ''
     });
+    setNotifQuery('');
     setSelectedChannels(['dashboard']);
     setIsNotificationModalOpen(true);
+    setIsConfirmationStep(false);
+  };
+
+  const handleNextStep = () => {
+    if (!notificationData.user || !notificationData.title || !notificationData.subject || !notificationData.message) {
+      showNotification('error', 'Gagal', 'Semua field wajib diisi');
+      return;
+    }
+    setIsConfirmationStep(true);
+  };
+
+  const handleBackStep = () => {
+    setIsConfirmationStep(false);
+  };
+
+  const toggleChannel = (channel) => {
+    setSelectedChannels(prev => {
+      if (prev.includes(channel)) {
+        if (prev.length === 1) {
+          showNotification('info', 'Info', 'Minimal satu metode pengiriman harus dipilih');
+          return prev;
+        }
+        return prev.filter(c => c !== channel);
+      } else {
+        return [...prev, channel];
+      }
+    });
   };
 
   const handleCloseNotificationModal = () => {
     setIsNotificationModalOpen(false);
     setNotificationData({ user: null, title: '', subject: '', message: '' });
     setSelectedChannels(['dashboard']);
+    setIsConfirmationStep(false);
   };
 
   const handleSendNotification = async (e) => {
@@ -513,163 +551,258 @@ const AdminApplicants = () => {
 
       {/* Notification Modal */}
       {isNotificationModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="fixed inset-0 bg-black bg-opacity-50" onClick={handleCloseNotificationModal}></div>
-          <div className="relative w-full max-w-lg rounded-lg bg-white shadow-xl overflow-hidden animate-in fade-in zoom-in duration-200">
-            <div className="flex items-center justify-between p-4 border-b">
-              <h3 className="text-lg font-medium text-gray-900">Kirim Notifikasi Manual</h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
+          <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm transition-opacity" onClick={handleCloseNotificationModal}></div>
+          <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden transform transition-all animate-in fade-in zoom-in duration-200">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-gray-50/50">
+              <div>
+                <h3 className="text-xl font-bold text-gray-900">
+                  {isConfirmationStep ? 'Konfirmasi Pengiriman' : 'Kirim Notifikasi'}
+                </h3>
+                <p className="text-sm text-gray-500">
+                  {isConfirmationStep ? 'Pilih metode pengiriman pesan' : 'Isi detail pesan untuk pelamar'}
+                </p>
+              </div>
               <button
                 type="button"
-                className="text-gray-400 hover:text-gray-500"
+                className="text-gray-400 hover:text-gray-500 hover:bg-gray-100 p-2 rounded-full transition-colors"
                 onClick={handleCloseNotificationModal}
               >
                 <span className="sr-only">Tutup</span>
-                <X className="w-6 h-6" />
+                <X className="w-5 h-5" />
               </button>
             </div>
-            <form onSubmit={handleSendNotification} className="p-4 space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Pilih Peserta</label>
-                <Listbox value={notificationData.user} onChange={(user) => setNotificationData({ ...notificationData, user })}>
-                  <div className="relative mt-1">
-                    <ListboxButton className="relative w-full cursor-default rounded-md border border-gray-300 bg-white py-2 pl-3 pr-10 text-left shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 sm:text-sm">
-                      <span className="block truncate">
-                        {notificationData.user ? `${notificationData.user.applicant_name} (${notificationData.user.job_title})` : 'Pilih peserta...'}
-                      </span>
-                      <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
-                        <ChevronsUpDown className="h-5 w-5 text-gray-400" aria-hidden="true" />
-                      </span>
-                    </ListboxButton>
-                    <ListboxOptions className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
-                      {applicants.map((applicant) => (
-                        <ListboxOption
-                          key={applicant.id}
-                          className={({ active }) =>
-                            clsx(
-                              active ? 'text-white bg-blue-600' : 'text-gray-900',
-                              'relative cursor-default select-none py-2 pl-3 pr-9'
-                            )
-                          }
-                          value={applicant}
-                        >
-                          {({ selected, active }) => (
-                            <>
-                              <span className={clsx(selected ? 'font-semibold' : 'font-normal', 'block truncate')}>
-                                {applicant.applicant_name} - {applicant.job_title}
-                              </span>
-                              {selected ? (
-                                <span
-                                  className={clsx(
-                                    active ? 'text-white' : 'text-blue-600',
-                                    'absolute inset-y-0 right-0 flex items-center pr-4'
-                                  )}
-                                >
-                                  <Check className="h-5 w-5" aria-hidden="true" />
-                                </span>
-                              ) : null}
-                            </>
+
+            {/* Modal Body */}
+            <div className="p-6 space-y-5">
+              {!isConfirmationStep ? (
+                <>
+                  {/* User Selection (Combobox) */}
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-1.5">Penerima</label>
+                    <Combobox value={notificationData.user} onChange={(user) => setNotificationData({ ...notificationData, user })}>
+                      <div className="relative mt-1">
+                        <div className="relative w-full cursor-default overflow-hidden rounded-xl border border-gray-300 bg-white text-left shadow-sm focus-within:ring-1 focus-within:ring-blue-500 focus-within:border-blue-500 sm:text-sm">
+                          <ComboboxInput
+                            className="w-full border-none py-3 pl-4 pr-10 text-sm leading-5 text-gray-900 focus:ring-0"
+                            displayValue={(user) => user ? `${user.applicant_name} (${user.job_title})` : ''}
+                            onChange={(event) => setNotifQuery(event.target.value)}
+                            placeholder="Ketik nama atau email..."
+                          />
+                          <ComboboxButton className="absolute inset-y-0 right-0 flex items-center pr-2">
+                            <ChevronsUpDown className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                          </ComboboxButton>
+                        </div>
+                        <ComboboxOptions className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-xl bg-white py-1 text-base shadow-xl ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+                          {filteredApplicantsForNotif.length === 0 && notifQuery !== '' ? (
+                            <div className="relative cursor-default select-none py-2 px-4 text-gray-700">
+                              Tidak ada peserta ditemukan.
+                            </div>
+                          ) : (
+                            filteredApplicantsForNotif.map((applicant) => (
+                              <ComboboxOption
+                                key={applicant.id}
+                                className={({ active }) =>
+                                  clsx(
+                                    active ? 'bg-blue-600 text-white' : 'text-gray-900',
+                                    'relative cursor-default select-none py-3 pl-4 pr-9'
+                                  )
+                                }
+                                value={applicant}
+                              >
+                                {({ selected, active }) => (
+                                  <>
+                                    <div className="flex items-center">
+                                      <div className={clsx("w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold mr-3", active ? "bg-white/20 text-white" : "bg-gray-100 text-gray-600")}>
+                                        {applicant.applicant_name?.charAt(0) || '?'}
+                                      </div>
+                                      <div className="flex flex-col">
+                                        <span className={clsx(selected ? 'font-semibold' : 'font-medium', 'block truncate')}>
+                                          {applicant.applicant_name}
+                                        </span>
+                                        <span className={clsx("text-xs", active ? "text-blue-100" : "text-gray-500")}>
+                                          {applicant.applicant_email} ({applicant.job_title})
+                                        </span>
+                                      </div>
+                                    </div>
+                                    {selected ? (
+                                      <span
+                                        className={clsx(
+                                          active ? 'text-white' : 'text-blue-600',
+                                          'absolute inset-y-0 right-0 flex items-center pr-4'
+                                        )}
+                                      >
+                                        <Check className="h-5 w-5" aria-hidden="true" />
+                                      </span>
+                                    ) : null}
+                                  </>
+                                )}
+                              </ComboboxOption>
+                            ))
                           )}
-                        </ListboxOption>
-                      ))}
-                    </ListboxOptions>
+                        </ComboboxOptions>
+                      </div>
+                    </Combobox>
                   </div>
-                </Listbox>
-              </div>
 
-              <div className="space-y-4">
-                <div>
-                  <label htmlFor="notif-title" className="block text-sm font-medium text-gray-700 mb-1">Judul Notifikasi</label>
-                  <input
-                    type="text"
-                    id="notif-title"
-                    className="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 sm:text-sm"
-                    placeholder="Contoh: Jadwal Interview"
-                    value={notificationData.title}
-                    onChange={(e) => setNotificationData({ ...notificationData, title: e.target.value })}
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="notif-subject" className="block text-sm font-medium text-gray-700 mb-1">Subjek (Ringkas)</label>
-                  <input
-                    type="text"
-                    id="notif-subject"
-                    className="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 sm:text-sm"
-                    placeholder="Contoh: Undangan Interview Tahap 1"
-                    value={notificationData.subject}
-                    onChange={(e) => setNotificationData({ ...notificationData, subject: e.target.value })}
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="notif-message" className="block text-sm font-medium text-gray-700 mb-1">Isi Pesan</label>
-                  <textarea
-                    id="notif-message"
-                    rows={4}
-                    className="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 sm:text-sm"
-                    placeholder="Tulis pesan lengkap di sini..."
-                    value={notificationData.message}
-                    onChange={(e) => setNotificationData({ ...notificationData, message: e.target.value })}
-                    required
-                  />
-                </div>
-
-                {/* Saluran Pengiriman */}
-                <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
-                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Saluran Pengiriman</label>
-                  <div className="flex gap-4">
-                    <label className="flex items-center gap-2 cursor-pointer">
+                  {/* Title & Subject Grid */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div>
+                      <label htmlFor="notif-title" className="block text-sm font-bold text-gray-700 mb-1.5">Judul Notifikasi</label>
                       <input
-                        type="checkbox"
-                        checked={selectedChannels.includes('dashboard')}
-                        onChange={(e) => {
-                          if (e.target.checked) setSelectedChannels([...selectedChannels, 'dashboard']);
-                          else if (selectedChannels.length > 1) setSelectedChannels(selectedChannels.filter(c => c !== 'dashboard'));
-                          else showNotification('warning', 'Peringatan', 'Minimal satu saluran');
-                        }}
-                        className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                        type="text"
+                        id="notif-title"
+                        className="block w-full rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm py-2.5 px-3"
+                        placeholder="Contoh: Jadwal Interview"
+                        value={notificationData.title}
+                        onChange={(e) => setNotificationData({ ...notificationData, title: e.target.value })}
+                        required
                       />
-                      <span className="text-sm font-medium text-gray-700">Dashboard</span>
-                    </label>
-                    <label className="flex items-center gap-2 cursor-pointer">
+                    </div>
+
+                    <div>
+                      <label htmlFor="notif-subject" className="block text-sm font-bold text-gray-700 mb-1.5">Subjek (Ringkas)</label>
                       <input
-                        type="checkbox"
-                        checked={selectedChannels.includes('email')}
-                        onChange={(e) => {
-                          if (e.target.checked) setSelectedChannels([...selectedChannels, 'email']);
-                          else if (selectedChannels.length > 1) setSelectedChannels(selectedChannels.filter(c => c !== 'email'));
-                          else showNotification('warning', 'Peringatan', 'Minimal satu saluran');
-                        }}
-                        className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                        type="text"
+                        id="notif-subject"
+                        className="block w-full rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm py-2.5 px-3"
+                        placeholder="Contoh: Undangan Interview Tahap 1"
+                        value={notificationData.subject}
+                        onChange={(e) => setNotificationData({ ...notificationData, subject: e.target.value })}
+                        required
                       />
-                      <span className="text-sm font-medium text-gray-700">Gmail</span>
-                    </label>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label htmlFor="notif-message" className="block text-sm font-bold text-gray-700 mb-1.5">Isi Pesan</label>
+                    <textarea
+                      id="notif-message"
+                      rows={6}
+                      className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-xl p-3"
+                      placeholder="Tulis pesan lengkap di sini..."
+                      value={notificationData.message}
+                      onChange={(e) => setNotificationData({ ...notificationData, message: e.target.value })}
+                      required
+                    />
+                    <p className="text-xs text-gray-500 mt-2 text-right">Mendukung format teks biasa.</p>
+                  </div>
+                </>
+              ) : (
+                /* Step 2: Confirmation & Channel Selection */
+                <div className="space-y-6">
+                  <div className="bg-blue-50 border border-blue-100 rounded-xl p-4">
+                    <h4 className="text-sm font-bold text-blue-800 mb-2">Ringkasan Pesan</h4>
+                    <div className="grid grid-cols-1 gap-2 text-sm">
+                      <p><span className="font-semibold text-gray-600">Penerima:</span> {notificationData.user?.applicant_name}</p>
+                      <p><span className="font-semibold text-gray-600">Judul:</span> {notificationData.title}</p>
+                      <p><span className="font-semibold text-gray-600">Subjek:</span> {notificationData.subject}</p>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h4 className="text-sm font-bold text-gray-900 mb-3 block">Pilih Metode Pengiriman</h4>
+                    <div className="space-y-3">
+                      <div
+                        className={`flex items-start p-4 rounded-xl border cursor-pointer transition-all ${selectedChannels.includes('dashboard') ? 'border-blue-500 bg-blue-50/50 ring-1 ring-blue-500' : 'border-gray-200 hover:border-gray-300'}`}
+                        onClick={() => toggleChannel('dashboard')}
+                      >
+                        <div className="flex items-center h-5">
+                          <input
+                            id="channel-dashboard"
+                            type="checkbox"
+                            className="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300 rounded"
+                            checked={selectedChannels.includes('dashboard')}
+                            readOnly
+                          />
+                        </div>
+                        <div className="ml-3 text-sm">
+                          <label htmlFor="channel-dashboard" className="font-bold text-gray-900 cursor-pointer">
+                            Dashboard Notification
+                          </label>
+                          <p className="text-gray-500">Kirim notifikasi ke dashboard aplikasi user.</p>
+                        </div>
+                      </div>
+
+                      <div
+                        className={`flex items-start p-4 rounded-xl border cursor-pointer transition-all ${selectedChannels.includes('email') ? 'border-blue-500 bg-blue-50/50 ring-1 ring-blue-500' : 'border-gray-200 hover:border-gray-300'}`}
+                        onClick={() => toggleChannel('email')}
+                      >
+                        <div className="flex items-center h-5">
+                          <input
+                            id="channel-email"
+                            type="checkbox"
+                            className="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300 rounded"
+                            checked={selectedChannels.includes('email')}
+                            readOnly
+                          />
+                        </div>
+                        <div className="ml-3 text-sm">
+                          <label htmlFor="channel-email" className="font-bold text-gray-900 cursor-pointer">
+                            Email (Gmail)
+                          </label>
+                          <p className="text-gray-500">Kirim salinan pesan ke alamat email user ({notificationData.user?.applicant_email}).</p>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
+              )}
+            </div>
 
-                <div className="flex justify-end pt-4 gap-3">
+            {/* Modal Footer */}
+            <div className="flex items-center justify-end px-6 py-4 bg-gray-50 border-t border-gray-100 gap-3">
+              {isConfirmationStep ? (
+                <>
                   <button
                     type="button"
+                    className="px-5 py-2.5 text-sm font-bold text-gray-700 bg-white border border-gray-300 rounded-xl shadow-sm hover:bg-gray-50"
+                    onClick={handleBackStep}
+                    disabled={isSending}
+                  >
+                    Kembali
+                  </button>
+                  <button
+                    type="button"
+                    className="inline-flex items-center px-6 py-2.5 text-sm font-bold text-white bg-blue-600 border border-transparent rounded-xl shadow-lg hover:bg-blue-700 disabled:opacity-50"
+                    onClick={(e) => handleSendNotification(e)}
+                    disabled={isSending}
+                  >
+                    {isSending ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Mengirim...
+                      </>
+                    ) : (
+                      <>
+                        <Send className="w-4 h-4 mr-2" />
+                        Kirim Sekarang
+                      </>
+                    )}
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    className="px-5 py-2.5 text-sm font-bold text-gray-700 bg-white border border-gray-300 rounded-xl shadow-sm hover:bg-gray-50"
                     onClick={handleCloseNotificationModal}
-                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                   >
                     Batal
                   </button>
                   <button
-                    type="submit"
-                    disabled={isSending}
-                    className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 flex items-center gap-2"
+                    type="button"
+                    className="inline-flex items-center px-6 py-2.5 text-sm font-bold text-white bg-blue-600 border border-transparent rounded-xl shadow-lg hover:bg-blue-700"
+                    onClick={handleNextStep}
                   >
-                    {isSending && <Loader2 className="w-4 h-4 animate-spin" />}
-                    {isSending ? 'Mengirim...' : 'Kirim Notifikasi'}
+                    Lanjut
                   </button>
-                </div>
-              </div>
-            </form>
+                </>
+              )}
+            </div>
           </div>
-        </div >
+        </div>
       )}
 
       {/* Detail Modal */}
@@ -857,6 +990,28 @@ const AdminApplicants = () => {
                           </div>
                         )}
 
+                        {selectedApplicant.photo_url ? (
+                          <a
+                            href={`${window.API_BASE_URL}${selectedApplicant.photo_url}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-2xl hover:border-blue-500 hover:shadow-md transition-all group"
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className="p-2 bg-blue-50 text-blue-500 rounded-xl group-hover:bg-blue-500 group-hover:text-white transition-all">
+                                <Image className="w-5 h-5" />
+                              </div>
+                              <span className="text-sm font-bold text-gray-700">Pas Foto Terbaru</span>
+                            </div>
+                            <LinkIcon className="w-4 h-4 text-gray-400 group-hover:text-blue-500" />
+                          </a>
+                        ) : (
+                          <div className="p-4 bg-gray-50 border border-dashed border-gray-300 rounded-2xl flex items-center gap-3 grayscale opacity-60">
+                            <Image className="w-5 h-5 text-gray-400" />
+                            <span className="text-sm text-gray-500 italic">Pas Foto belum diunggah</span>
+                          </div>
+                        )}
+
                         {selectedApplicant.ktp_url ? (
                           <a
                             href={`${window.API_BASE_URL}${selectedApplicant.ktp_url}`}
@@ -913,9 +1068,9 @@ const AdminApplicants = () => {
                           </a>
                         )}
 
-                        {selectedApplicant.sertifikat_url && (
+                        {selectedApplicant.other_url && (
                           <a
-                            href={`${window.API_BASE_URL}${selectedApplicant.sertifikat_url}`}
+                            href={`${window.API_BASE_URL}${selectedApplicant.other_url}`}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-2xl hover:border-blue-500 hover:shadow-md transition-all group"

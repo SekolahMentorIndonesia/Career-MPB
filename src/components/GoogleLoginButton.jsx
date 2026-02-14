@@ -4,7 +4,7 @@ import { AuthContext } from '../context/AuthContext';
 import { useNotification } from '../context/NotificationContext';
 import { Loader2 } from 'lucide-react';
 
-const GoogleLoginButton = () => {
+const GoogleLoginButton = ({ from }) => {
     const navigate = useNavigate();
     const { setAuth } = useContext(AuthContext);
     const { showNotification } = useNotification();
@@ -61,7 +61,8 @@ const GoogleLoginButton = () => {
                 if (user.role?.toUpperCase() === 'ADMIN') {
                     navigate('/dashboard/admin');
                 } else {
-                    navigate('/dashboard/user');
+                    // Redirect to 'from' if it exists, otherwise dashboard
+                    navigate(from && from !== '/' ? from : '/dashboard/user');
                 }
             } else {
                 showNotification('error', 'Login Gagal', data.message || 'Terjadi kesalahan saat login dengan Google');

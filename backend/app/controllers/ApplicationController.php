@@ -43,7 +43,7 @@ class ApplicationController {
                         u.domicile_rt as applicant_domicile_rt,
                         u.domicile_rw as applicant_domicile_rw,
                         u.domicile_kabupaten as applicant_domicile_kabupaten,
-                        d.cv_url, d.ktp_url, d.portfolio_url, d.portfolio_link,
+                        d.cv_url, d.ktp_url, d.photo_url, d.other_url, d.paklaring_url, d.portfolio_url, d.portfolio_link,
                         j.title as job_title,
                         MAX(p.score) as psychotest_score,
                         MAX(p.results) as psychotest_results,
@@ -59,7 +59,7 @@ class ApplicationController {
                                u.birth_place, u.birth_date, u.last_education, u.gpa, u.major, u.skills,
                                u.ktp_address, u.ktp_rt, u.ktp_rw, u.ktp_kabupaten,
                                u.domicile_address, u.domicile_rt, u.domicile_rw, u.domicile_kabupaten,
-                               d.cv_url, d.ktp_url, d.portfolio_url, d.portfolio_link,
+                               d.cv_url, d.ktp_url, d.photo_url, d.other_url, d.paklaring_url, d.portfolio_url, d.portfolio_link,
                                j.title
                       ORDER BY a.created_at DESC";
             
@@ -305,16 +305,26 @@ class ApplicationController {
                          ->execute([':status' => $normalizedTarget, ':id' => $applicationId]);
             }
 
+            // Fetch job details for notifications
+            $jobQuery = "SELECT j.title, j.company FROM applications a JOIN jobs j ON a.job_id = j.id WHERE a.id = :id";
+            $jobStmt = $this->db->prepare($jobQuery);
+            $jobStmt->execute([':id' => $applicationId]);
+            $job = $jobStmt->fetch(PDO::FETCH_ASSOC);
+            $jobTitle = $job['title'] ?? 'Posisi';
+            $companyName = $job['company'] ?? 'MPB Group';
+
             // Handle notifications
             if ($isRejected) {
-                $this->sendNotification($applicationId, "Lamaran Ditolak", "Maaf, lamaran Anda belum dapat dilanjutkan ke tahap berikutnya. Terima kasih atas partisipasi Anda.");
+                $this->sendNotification($applicationId, "Lamaran Ditolak - $jobTitle", "Maaf, lamaran Anda untuk posisi **$jobTitle** di **$companyName** belum dapat dilanjutkan ke tahap berikutnya. Terima kasih atas partisipasi Anda.");
             } elseif ($normalizedTarget === 'Psikotes') {
-                $this->sendNotification($applicationId, "Seleksi Tahap Psikotes", "Selamat! Anda lulus ke tahap Psikotes. Mohon tunggu tim Recruitment kami menghubungi Anda melalui Gmail, WhatsApp, atau dashboard ini untuk jadwal dan langkah selanjutnya.");
+                $this->sendNotification($applicationId, "Seleksi Tahap Psikotes - $jobTitle", "Selamat! Anda lulus ke tahap Psikotes untuk posisi **$jobTitle** di **$companyName**. Mohon tunggu tim Recruitment kami menghubungi Anda melalui Gmail, WhatsApp, atau dashboard ini untuk jadwal dan langkah selanjutnya.");
                 $this->db->prepare("INSERT IGNORE INTO psychotests (application_id) VALUES (:id)")->execute([':id' => $applicationId]);
             } elseif ($normalizedTarget === 'Interview') {
-                $this->sendNotification($applicationId, "Undangan Interview", "Selamat! Anda lulus ke tahap Interview. Mohon tunggu tim Recruitment kami menghubungi Anda melalui Gmail, WhatsApp, atau dashboard ini untuk jadwal dan langkah selanjutnya.");
+                $this->sendNotification($applicationId, "Undangan Interview - $jobTitle", "Selamat! Anda lulus ke tahap Interview untuk posisi **$jobTitle** di **$companyName**. Mohon tunggu tim Recruitment kami menghubungi Anda melalui Gmail, WhatsApp, atau dashboard ini untuk jadwal dan langkah selanjutnya.");
             } elseif ($isAccepted && $normalizedTarget === 'Final') {
-                $this->sendNotification($applicationId, "Lamaran Diterima", "Selamat! Anda telah dinyatakan DITERIMA (Accepted) di MPB Group. Mohon tunggu tim Recruitment kami menghubungi Anda melalui Gmail, WhatsApp, atau dashboard ini untuk proses Onboarding.");
+                $notifTitle = "Lamaran DITERIMA! - $jobTitle";
+                $notifMsg = "Selamat! Anda telah dinyatakan DITERIMA (Accepted) untuk posisi **$jobTitle** di **$companyName**. Mohon tunggu tim Recruitment kami menghubungi Anda melalui Gmail, WhatsApp, atau dashboard ini untuk proses Onboarding.";
+                $this->sendNotification($applicationId, $notifTitle, $notifMsg);
             }
 
             $this->db->commit();

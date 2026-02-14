@@ -73,7 +73,7 @@ const Login = () => {
 
         {/* Google Login */}
         <div className="py-4">
-          <GoogleLoginButton />
+          <GoogleLoginButton from={from} />
         </div>
 
         <div className="text-sm text-center text-gray-400 mt-6">

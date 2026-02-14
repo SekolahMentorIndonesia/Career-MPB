@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { User, Mail, Lock, Loader2, Eye, EyeOff, Phone } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import GoogleLoginButton from '../../components/GoogleLoginButton';
@@ -14,12 +14,15 @@ const Register = () => {
   const [showPassword, setShowPassword] = useState(false);
   const { register, isAuthenticated } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     if (isAuthenticated) {
       navigate('/dashboard');
     }
   }, [isAuthenticated, navigate]);
+
+  const from = location.state?.from?.pathname || '/';
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -65,7 +68,7 @@ const Register = () => {
 
         {/* Google Login */}
         <div className="py-4">
-          <GoogleLoginButton />
+          <GoogleLoginButton from={from} />
         </div>
 
         <div className="text-sm text-center text-gray-400 mt-6">

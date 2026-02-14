@@ -197,7 +197,11 @@ const JobSearchSection = () => {
                         }`}
                     >
                       {isJobOpen(job) ? (
-                        <>Lamar Sekarang <ArrowRight className="ml-2 w-4 h-4" /></>
+                        user ? (
+                          <>Lamar Sekarang <ArrowRight className="ml-2 w-4 h-4" /></>
+                        ) : (
+                          <>Login untuk Melamar <ArrowRight className="ml-2 w-4 h-4" /></>
+                        )
                       ) : (
                         'Pendaftaran Tutup'
                       )}

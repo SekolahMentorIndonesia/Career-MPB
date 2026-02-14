@@ -369,8 +369,8 @@ class PsychotestController {
             $total = $this->db->query("SELECT COUNT(*) FROM psychotests WHERE score IS NOT NULL")->fetchColumn();
             $avgScore = $this->db->query("SELECT AVG(score) FROM psychotests WHERE score IS NOT NULL")->fetchColumn();
             
-            $passed = $this->db->query("SELECT COUNT(*) FROM psychotests WHERE score >= 70")->fetchColumn();
-            $failed = $this->db->query("SELECT COUNT(*) FROM psychotests WHERE score < 70")->fetchColumn();
+            $passed = $this->db->query("SELECT COUNT(*) FROM psychotests WHERE score >= 50")->fetchColumn();
+            $failed = $this->db->query("SELECT COUNT(*) FROM psychotests WHERE score < 50")->fetchColumn();
 
             ResponseHelper::success("Psychotest summary fetched", [
                 'total_participants' => (int)$total,

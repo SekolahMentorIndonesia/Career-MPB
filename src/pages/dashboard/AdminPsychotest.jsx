@@ -376,7 +376,7 @@ const AdminPsychotest = () => {
                               {participant.psychotest_results ? (
                                 <span className={clsx(
                                   "px-2.5 py-1 inline-flex text-xs leading-5 font-bold rounded-full border",
-                                  participant.psychotest_score >= 70 ? "bg-green-50 text-green-700 border-green-100" : "bg-red-50 text-red-700 border-red-100"
+                                  participant.psychotest_score >= 50 ? "bg-green-50 text-green-700 border-green-100" : "bg-red-50 text-red-700 border-red-100"
                                 )}>
                                   Score: {participant.psychotest_score}
                                 </span>
@@ -416,7 +416,7 @@ const AdminPsychotest = () => {
                               <div className="flex items-center gap-2">
                                 <span className={clsx(
                                   "px-2 py-0.5 text-[10px] font-black rounded-full border",
-                                  p.psychotest_score >= 70 ? "bg-green-50 text-green-700 border-green-100" : "bg-red-50 text-red-700 border-red-100"
+                                  p.psychotest_score >= 50 ? "bg-green-50 text-green-700 border-green-100" : "bg-red-50 text-red-700 border-red-100"
                                 )}>
                                   Score: {p.psychotest_score}
                                 </span>
@@ -700,29 +700,7 @@ const AdminPsychotest = () => {
                     <span>Mengerjakan Soal</span>
                   </div>
                 </div>
-
-                <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
-                  <p className="text-sm font-medium text-gray-500 mb-1">Rata-rata Skor</p>
-                  <p className="text-3xl font-bold text-gray-900">{summaryData?.average_score || 0}</p>
-                  <div className="mt-2 flex items-center text-xs text-green-600">
-                    <BarChart className="w-3 h-3 mr-1" />
-                    <span>Poin Pilihan Ganda</span>
-                  </div>
-                </div>
-
-                <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
-                  <p className="text-sm font-medium text-gray-500 mb-1">Status Kelulusan</p>
-                  <div className="flex gap-4 mt-2">
-                    <div className="flex-1 text-center bg-green-50 rounded-lg p-2 border border-green-100">
-                      <p className="text-xs font-bold text-green-700 uppercase">Lulus</p>
-                      <p className="text-xl font-black text-green-800">{summaryData?.passed || 0}</p>
-                    </div>
-                    <div className="flex-1 text-center bg-red-50 rounded-lg p-2 border border-red-100">
-                      <p className="text-xs font-bold text-red-700 uppercase">Gagal</p>
-                      <p className="text-xl font-black text-red-800">{summaryData?.failed || 0}</p>
-                    </div>
-                  </div>
-                </div>              </div>
+              </div>
 
               <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 overflow-hidden">
                 <h3 className="text-lg font-bold text-gray-800 mb-4">Hasil Detail Peserta</h3>
@@ -751,9 +729,9 @@ const AdminPsychotest = () => {
                               <td className="px-6 py-4 whitespace-nowrap">
                                 <span className={clsx(
                                   "px-2.5 py-0.5 rounded-full text-xs font-bold",
-                                  p.psychotest_score >= 70 ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+                                  p.psychotest_score >= 50 ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
                                 )}>
-                                  {p.psychotest_score >= 70 ? 'Lulus' : 'Gagal'}
+                                  {p.psychotest_score >= 50 ? 'Lulus' : 'Gagal'}
                                 </span>
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">
@@ -781,9 +759,9 @@ const AdminPsychotest = () => {
                             <span className="text-[10px] font-black text-gray-900">Score: {p.psychotest_score}</span>
                             <span className={clsx(
                               "px-2 py-0.5 rounded-full text-[9px] font-black uppercase",
-                              p.psychotest_score >= 70 ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"
+                              p.psychotest_score >= 50 ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"
                             )}>
-                              {p.psychotest_score >= 70 ? 'Lulus' : 'Gagal'}
+                              {p.psychotest_score >= 50 ? 'Lulus' : 'Gagal'}
                             </span>
                           </div>
                         </div>
