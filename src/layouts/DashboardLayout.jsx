@@ -71,6 +71,7 @@ const DashboardLayout = () => {
     { name: 'Data Diri', href: '/dashboard/user/profile', icon: UserCircle },
     { name: 'Dokumen', href: '/dashboard/user/documents', icon: FileText },
     { name: 'Lamaran Saya', href: '/dashboard/user/applications', icon: ClipboardList },
+    { name: 'Lowongan', href: '/dashboard/user/lowongan', icon: Briefcase },
     { name: 'Psikotes', href: '/dashboard/user/psychotest', icon: UserCheck },
     { name: 'Notifikasi', href: '/dashboard/user/notifications', icon: Bell },
     { name: 'Pengaturan', href: '/dashboard/user/settings', icon: Settings },

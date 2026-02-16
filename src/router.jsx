@@ -30,6 +30,7 @@ const UserApplications = lazy(() => import('./pages/dashboard/UserApplications')
 const UserDocuments = lazy(() => import('./pages/dashboard/UserDocuments'));
 const UserNotifications = lazy(() => import('./pages/dashboard/UserNotifications'));
 const UserPsychotest = lazy(() => import('./pages/dashboard/UserPsychotest'));
+const UserAvailableJobs = lazy(() => import('./pages/dashboard/UserAvailableJobs'));
 
 // Dashboard Pages - Admin
 const AdminOverview = lazy(() => import('./pages/dashboard/AdminOverview'));
@@ -51,13 +52,13 @@ const router = createBrowserRouter([
     children: [
       { index: true, element: <Home /> },
       { path: 'jobs/:slug/details', element: <JobDetail /> },
-      { 
-        path: 'apply/:jobId', 
+      {
+        path: 'apply/:jobId',
         element: (
           <ProtectedRoute requiredRole="USER">
             <Apply />
           </ProtectedRoute>
-        ) 
+        )
       },
     ],
   },
@@ -136,6 +137,7 @@ const router = createBrowserRouter([
       { path: 'settings', element: <AccountSettings /> },
       { path: 'documents', element: <UserDocuments /> },
       { path: 'applications', element: <UserApplications /> },
+      { path: 'lowongan', element: <UserAvailableJobs /> },
       { path: 'psychotest', element: <UserPsychotest /> },
       { path: 'notifications', element: <UserNotifications /> },
     ],

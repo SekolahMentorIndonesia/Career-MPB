@@ -213,26 +213,25 @@ const UserPsychotestExam = () => {
     exitFullscreen();
 
     if (isPreview) {
-      // Mock result for preview mode
-      setTimeout(() => {
-        setResult({ score: 100, result: '100' });
-        setFinished(true);
-        setIsSubmitting(false);
-        setExamStarted(false);
-      }, 1500);
-      return;
+      // For preview mode, we still want to call the real submit API
+      // to get the actual score calculation, even if it's not saved.
     }
 
     try {
-      // Format answers for backend
-      const formattedAnswers = Object.entries(answers).map(([qid, ans]) => ({
-        question_id: parseInt(qid),
-        answer: ans
+      // Format answers for backend - Include all questions from testData to ensure correct score denominator
+      const formattedAnswers = testData.questions.map(q => ({
+        question_id: q.id,
+        answer: answers[q.id] || null // Send null if not answered
       }));
+
+      const headers = { 'Content-Type': 'application/json' };
+      if (isPreview) {
+        headers['Authorization'] = `Bearer ${localStorage.getItem('token')}`;
+      }
 
       const response = await fetch(`${window.API_BASE_URL}/api/psychotest/submit`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: headers,
         body: JSON.stringify({
           psychotest_id: testData.psychotest_id,
           answers: formattedAnswers

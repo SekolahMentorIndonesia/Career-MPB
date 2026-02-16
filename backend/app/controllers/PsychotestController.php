@@ -292,9 +292,13 @@ class PsychotestController {
 
             $score = 0;
             $totalMC = 0;
+            $isDemo = $psychotestId === 'demo';
 
-            // Prepare statements
-            $ansStmt = $this->db->prepare("INSERT INTO psychotest_answers (psychotest_id, question_id, answer, is_correct) VALUES (:pid, :qid, :ans, :isc)");
+            // Prepare statements only if not demo
+            $ansStmt = null;
+            if (!$isDemo) {
+                $ansStmt = $this->db->prepare("INSERT INTO psychotest_answers (psychotest_id, question_id, answer, is_correct) VALUES (:pid, :qid, :ans, :isc)");
+            }
             
             // Get Answer Keys for MC
             $questionIds = array_column($answers, 'question_id');
@@ -317,43 +321,54 @@ class PsychotestController {
 
                 if (isset($keyMap[$qid]) && $keyMap[$qid]['type'] === 'multiple_choice') {
                     $totalMC++;
-                    if ($keyMap[$qid]['answer_key'] === $userAns) {
+                    // Use trim and string conversion for robust comparison
+                    if ($userAns !== null && trim((string)$keyMap[$qid]['answer_key']) === trim((string)$userAns)) {
                         $score++;
                         $isCorrect = true;
                     } else {
                         $isCorrect = false;
                     }
                 }
-
-                $ansStmt->execute([
-                    ':pid' => $psychotestId,
-                    ':qid' => $qid,
-                    ':ans' => $userAns,
-                    ':isc' => $isCorrect
-                ]);
+                
+                // ... handle essay if needed (currently score only counts MC)
+                
+                if (!$isDemo && $ansStmt) {
+                    $ansStmt->execute([
+                        ':pid' => $psychotestId,
+                        ':qid' => $qid,
+                        ':ans' => (string)$userAns,
+                        ':isc' => $isCorrect
+                    ]);
+                }
             }
 
             // Calculate Score: (Correct Answers / Total MC Questions) * 100
             $finalScore = 0;
             if (!$isDisqualified && $totalMC > 0) {
-                $finalScore = round(($score / $totalMC) * 100);
+                $finalScore = (int)round(($score / $totalMC) * 100);
             }
             
-            // Format result: JSON string to satisfy potential JSON check in DB
-            $resultData = [
-                'score' => $finalScore,
-                'status' => $isDisqualified ? 'Diskualifikasi' : 'Selesai',
-                'correct_answers' => $score,
-                'total_mc' => $totalMC
-            ];
-            $resultString = json_encode($resultData);
+            // Update Database only if not demo
+            if (!$isDemo) {
+                // Format result: JSON string to satisfy potential JSON check in DB
+                $resultData = [
+                    'score' => $finalScore,
+                    'status' => $isDisqualified ? 'Diskualifikasi' : 'Selesai',
+                    'correct_answers' => $score,
+                    'total_mc' => $totalMC
+                ];
+                $resultString = json_encode($resultData);
 
-            // Update Psychotests Table
-            $updQuery = "UPDATE psychotests SET score = :score, results = :result WHERE id = :id";
-            $updStmt = $this->db->prepare($updQuery);
-            $updStmt->execute([':score' => $finalScore, ':result' => $resultString, ':id' => $psychotestId]);
+                // Update Psychotests Table
+                $updQuery = "UPDATE psychotests SET score = :score, results = :result WHERE id = :id";
+                $updStmt = $this->db->prepare($updQuery);
+                $updStmt->execute([':score' => $finalScore, ':result' => $resultString, ':id' => $psychotestId]);
 
-            $this->db->commit();
+                $this->db->commit();
+            } else {
+                $this->db->rollBack();
+            }
+
             ResponseHelper::success("Test submitted successfully", ['score' => $finalScore, 'result' => (string)$finalScore]);
 
         } catch (\Exception $e) {
@@ -369,8 +384,8 @@ class PsychotestController {
             $total = $this->db->query("SELECT COUNT(*) FROM psychotests WHERE score IS NOT NULL")->fetchColumn();
             $avgScore = $this->db->query("SELECT AVG(score) FROM psychotests WHERE score IS NOT NULL")->fetchColumn();
             
-            $passed = $this->db->query("SELECT COUNT(*) FROM psychotests WHERE score >= 50")->fetchColumn();
-            $failed = $this->db->query("SELECT COUNT(*) FROM psychotests WHERE score < 50")->fetchColumn();
+            $passed = $this->db->query("SELECT COUNT(*) FROM psychotests WHERE score >= 70")->fetchColumn();
+            $failed = $this->db->query("SELECT COUNT(*) FROM psychotests WHERE score < 70")->fetchColumn();
 
             ResponseHelper::success("Psychotest summary fetched", [
                 'total_participants' => (int)$total,
