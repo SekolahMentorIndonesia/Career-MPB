@@ -55,7 +55,12 @@ const UserOverview = () => {
     );
   }
 
-  const { profile_percentage, is_profile_complete, is_document_uploaded, has_applied } = summaryData || {};
+  const {
+    profile_percentage = 0,
+    is_profile_complete = false,
+    is_document_uploaded = false,
+    has_applied = false
+  } = summaryData || {};
 
   const stats = [
     {

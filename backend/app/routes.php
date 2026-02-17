@@ -208,6 +208,10 @@ switch ($path) {
             elseif ($method == 'PUT') $job->update($id);
             elseif ($method == 'DELETE') $job->delete($id);
             else ResponseHelper::error("Method not allowed", 405);
+        } elseif (preg_match('/^\/api\/applications\/(\d+)$/', $path, $matches)) {
+            $id = $matches[1];
+            if ($method == 'GET') $app->show($id);
+            else ResponseHelper::error("Method not allowed", 405);
         } elseif (preg_match('/^\/api\/notifications\/(\d+)$/', $path, $matches)) {
             $id = $matches[1];
             if ($method == 'PUT') $notif->update($id);
@@ -220,6 +224,16 @@ switch ($path) {
             ResponseHelper::error("Method not allowed", 405);
         } elseif ($path == '/api/user/psychotest' && $method == 'GET') {
             $app->getUserPsychotest();
+        } elseif ($path == '/api/debug-headers' && $method == 'GET') {
+            ResponseHelper::success("Headers Debug", [
+                'headers' => getallheaders(),
+                'server' => [
+                    'HTTP_AUTHORIZATION' => $_SERVER['HTTP_AUTHORIZATION'] ?? 'N/A',
+                    'REDIRECT_HTTP_AUTHORIZATION' => $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] ?? 'N/A',
+                    'HTTP_X_AUTHORIZATION' => $_SERVER['HTTP_X_AUTHORIZATION'] ?? 'N/A',
+                    'REDIRECT_HTTP_X_AUTHORIZATION' => $_SERVER['REDIRECT_HTTP_X_AUTHORIZATION'] ?? 'N/A'
+                ]
+            ]);
         } else {
             ResponseHelper::error("Route not found", 404);
         }

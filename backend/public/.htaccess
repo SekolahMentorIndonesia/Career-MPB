@@ -10,6 +10,9 @@
     </IfModule>
 
     RewriteEngine On
+    
+    # Crucial for Hostinger/Shared Hosting to pass Authorization header
+    CGIPassAuth On
 
     # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .

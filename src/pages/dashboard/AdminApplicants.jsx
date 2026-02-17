@@ -83,6 +83,12 @@ const AdminApplicants = () => {
   }, [searchQuery, statusFilter, applicants]);
 
   const fetchApplicants = async () => {
+    const token = localStorage.getItem('token');
+    if (!token || token === 'null' || token === 'undefined') {
+      showNotification('error', 'Unauthorized', 'Sesi Anda telah berakhir. Silakan login kembali.');
+      return;
+    }
+
     setIsLoading(true);
     try {
       const response = await fetch(`${window.API_BASE_URL}/api/applications`, {
@@ -94,6 +100,8 @@ const AdminApplicants = () => {
       if (data.success) {
         setApplicants(data.data);
         setFilteredApplicants(data.data);
+      } else {
+        showNotification('error', 'Gagal', data.message || 'Gagal memuat data pelamar');
       }
     } catch (error) {
       console.error('Error fetching applicants:', error);
@@ -123,9 +131,24 @@ const AdminApplicants = () => {
   };
 
   // Detail Modal Actions
-  const handleOpenDetailModal = (applicant) => {
+  const handleOpenDetailModal = async (applicant) => {
+    // Show current data immediately for better UX
     setSelectedApplicant(applicant);
     setIsDetailModalOpen(true);
+
+    try {
+      const response = await fetch(`${window.API_BASE_URL}/api/applications/${applicant.id}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      const result = await response.json();
+      if (result.success) {
+        setSelectedApplicant(result.data);
+      }
+    } catch (error) {
+      console.error('Error fetching latest application details:', error);
+    }
   };
 
   const handleCloseDetailModal = () => {
@@ -1031,6 +1054,28 @@ const AdminApplicants = () => {
                           <div className="p-4 bg-gray-50 border border-dashed border-gray-300 rounded-2xl flex items-center gap-3 grayscale opacity-60">
                             <Image className="w-5 h-5 text-gray-400" />
                             <span className="text-sm text-gray-500 italic">KTP belum diunggah</span>
+                          </div>
+                        )}
+
+                        {selectedApplicant.ijazah_url ? (
+                          <a
+                            href={`${window.API_BASE_URL}${selectedApplicant.ijazah_url}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-2xl hover:border-blue-500 hover:shadow-md transition-all group"
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className="p-2 bg-amber-50 text-amber-500 rounded-xl group-hover:bg-amber-500 group-hover:text-white transition-all">
+                                <Award className="w-5 h-5" />
+                              </div>
+                              <span className="text-sm font-bold text-gray-700">Ijazah Terakhir</span>
+                            </div>
+                            <LinkIcon className="w-4 h-4 text-gray-400 group-hover:text-blue-500" />
+                          </a>
+                        ) : (
+                          <div className="p-4 bg-gray-50 border border-dashed border-gray-300 rounded-2xl flex items-center gap-3 grayscale opacity-60">
+                            <Award className="w-5 h-5 text-gray-400" />
+                            <span className="text-sm text-gray-500 italic">Ijazah belum diunggah</span>
                           </div>
                         )}
 

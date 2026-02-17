@@ -114,6 +114,7 @@ const UserDocuments = () => {
     pasFoto: null,
     portofolioFile: null,
     ktp: null,
+    ijazah: null,
     sertifikat: null,
     paklaring: null
   });
@@ -168,8 +169,8 @@ const UserDocuments = () => {
       return;
     }
 
-    if ((key === 'pasFoto' || key === 'ktp') && !file.type.startsWith('image/')) {
-      showNotification('error', 'Format Tidak Sesuai', 'Foto harus dalam format gambar (JPG, PNG, atau WEBP).');
+    if ((key === 'pasFoto' || key === 'ktp' || key === 'ijazah') && !file.type.startsWith('image/') && file.type !== 'application/pdf') {
+      showNotification('error', 'Format Tidak Sesuai', 'Dokumen harus dalam format gambar (JPG, PNG, WEBP) atau PDF.');
       e.target.value = '';
       return;
     }
@@ -187,6 +188,7 @@ const UserDocuments = () => {
     if (files.portofolioFile) formData.append('portofolioFile', files.portofolioFile);
     if (portofolioLink) formData.append('portfolioLink', portofolioLink);
     if (files.ktp) formData.append('ktp', files.ktp);
+    if (files.ijazah) formData.append('ijazah', files.ijazah);
     if (files.sertifikat) formData.append('sertifikat', files.sertifikat);
     if (files.paklaring) formData.append('paklaring', files.paklaring);
 
@@ -202,7 +204,7 @@ const UserDocuments = () => {
       if (data.success) {
         showNotification('success', 'Berhasil!', 'Dokumen telah disimpan.');
         setIsEditing(false);
-        setFiles({ cv: null, pasFoto: null, portofolioFile: null, ktp: null, sertifikat: null, paklaring: null });
+        setFiles({ cv: null, pasFoto: null, portofolioFile: null, ktp: null, ijazah: null, sertifikat: null, paklaring: null });
         fetchExistingDocuments();
       } else {
         showNotification('error', 'Gagal!', data.message || 'Gagal menyimpan dokumen');
@@ -217,14 +219,15 @@ const UserDocuments = () => {
 
   const cancelEditing = () => {
     setIsEditing(false);
-    setFiles({ cv: null, pasFoto: null, portofolioFile: null, ktp: null, sertifikat: null, paklaring: null });
+    setFiles({ cv: null, pasFoto: null, portofolioFile: null, ktp: null, ijazah: null, sertifikat: null, paklaring: null });
     // Re-fetch to reset portofolio link if cancelled
     fetchExistingDocuments();
   };
 
   const areMandatoryUploaded = (files.cv || existingDocs.cv_url) &&
     (files.pasFoto || existingDocs.photo_url) &&
-    (files.ktp || existingDocs.ktp_url);
+    (files.ktp || existingDocs.ktp_url) &&
+    (files.ijazah || existingDocs.ijazah_url);
 
   if (isFetching) {
     return (
@@ -286,7 +289,7 @@ const UserDocuments = () => {
           <div>
             <p className="font-bold text-rose-900">Dokumen Belum Lengkap</p>
             <p className="text-sm text-rose-700 leading-relaxed">
-              Silakan klik tombol <b>Ubah Dokumen</b> di atas dan unggah CV, Pas Foto, serta KTP agar Anda dapat mulai melamar posisi yang tersedia.
+              Silakan klik tombol <b>Ubah Dokumen</b> di atas dan unggah CV, Pas Foto, KTP, serta Ijazah agar Anda dapat mulai melamar posisi yang tersedia.
             </p>
           </div>
         </div>
@@ -336,6 +339,17 @@ const UserDocuments = () => {
             onChange={handleFileChange('ktp')}
             uploadedFile={files.ktp ? { file: files.ktp } : { isExisting: !!existingDocs?.ktp_url, url: existingDocs?.ktp_url }}
             description="Format JPG/PNG, NIK terbaca"
+          />
+
+          <FileInput
+            label="Ijazah"
+            id="ijazah"
+            icon={Award}
+            isEditing={isEditing}
+            required={true}
+            onChange={handleFileChange('ijazah')}
+            uploadedFile={files.ijazah ? { file: files.ijazah } : { isExisting: !!existingDocs?.ijazah_url, url: existingDocs?.ijazah_url }}
+            description="Format PDF/JPG/PNG, Max 5MB"
           />
         </div>
       </div>

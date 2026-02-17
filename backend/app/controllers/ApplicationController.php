@@ -43,7 +43,7 @@ class ApplicationController {
                         u.domicile_rt as applicant_domicile_rt,
                         u.domicile_rw as applicant_domicile_rw,
                         u.domicile_kabupaten as applicant_domicile_kabupaten,
-                        d.cv_url, d.ktp_url, d.photo_url, d.other_url, d.paklaring_url, d.portfolio_url, d.portfolio_link,
+                        d.cv_url, d.ktp_url, d.photo_url, d.ijazah_url, d.other_url, d.paklaring_url, d.portfolio_url, d.portfolio_link,
                         j.title as job_title,
                         MAX(p.score) as psychotest_score,
                         MAX(p.results) as psychotest_results,
@@ -59,7 +59,7 @@ class ApplicationController {
                                u.birth_place, u.birth_date, u.last_education, u.gpa, u.major, u.skills,
                                u.ktp_address, u.ktp_rt, u.ktp_rw, u.ktp_kabupaten,
                                u.domicile_address, u.domicile_rt, u.domicile_rw, u.domicile_kabupaten,
-                               d.cv_url, d.ktp_url, d.photo_url, d.other_url, d.paklaring_url, d.portfolio_url, d.portfolio_link,
+                               d.cv_url, d.ktp_url, d.photo_url, d.ijazah_url, d.other_url, d.paklaring_url, d.portfolio_url, d.portfolio_link,
                                j.title
                       ORDER BY a.created_at DESC";
             
@@ -75,6 +75,63 @@ class ApplicationController {
             ResponseHelper::success("Applications fetched", $applications);
         } catch (\Exception $e) {
             error_log("Application Index Error: " . $e->getMessage());
+            ResponseHelper::error("Server Error: " . $e->getMessage(), 500);
+        }
+    }
+
+    public function show($id) {
+        try {
+            AuthMiddleware::isAdmin();
+
+            $query = "SELECT
+                        a.id, a.user_id, a.job_id, a.status, a.created_at, a.rejected_at,
+                        u.name as applicant_name,
+                        u.email as applicant_email,
+                        u.photo as applicant_photo,
+                        u.phone as applicant_phone,
+                        u.nik as applicant_nik,
+                        u.religion as applicant_religion,
+                        u.height as applicant_height,
+                        u.weight as applicant_weight,
+                        u.birth_place as applicant_birth_place,
+                        u.birth_date as applicant_birth_date,
+                        u.last_education as applicant_last_education,
+                        u.gpa as applicant_gpa,
+                        u.major as applicant_major,
+                        u.skills as applicant_skills,
+                        u.ktp_address as applicant_ktp_address,
+                        u.ktp_rt as applicant_ktp_rt,
+                        u.ktp_rw as applicant_ktp_rw,
+                        u.ktp_kabupaten as applicant_ktp_kabupaten,
+                        u.domicile_address as applicant_domicile_address,
+                        u.domicile_rt as applicant_domicile_rt,
+                        u.domicile_rw as applicant_domicile_rw,
+                        u.domicile_kabupaten as applicant_domicile_kabupaten,
+                        d.cv_url, d.ktp_url, d.photo_url, d.ijazah_url, d.other_url, d.paklaring_url, d.portfolio_url, d.portfolio_link,
+                        j.title as job_title,
+                        (SELECT MAX(score) FROM psychotests WHERE application_id = a.id) as psychotest_score,
+                        (SELECT MAX(results) FROM psychotests WHERE application_id = a.id) as psychotest_results,
+                        (SELECT JSON_ARRAYAGG(JSON_OBJECT('name', stage_name, 'status', status)) 
+                         FROM application_stages WHERE application_id = a.id) as stages
+                      FROM applications a
+                      JOIN users u ON a.user_id = u.id
+                      JOIN jobs j ON a.job_id = j.id
+                      LEFT JOIN user_documents d ON u.id = d.user_id
+                      WHERE a.id = :id
+                      LIMIT 1";
+            
+            $stmt = $this->db->prepare($query);
+            $stmt->execute([':id' => $id]);
+            $application = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($application) {
+                $application['stages'] = json_decode($application['stages'] ?? '[]', true);
+                ResponseHelper::success("Application found", $application);
+            } else {
+                ResponseHelper::error("Application not found", 404);
+            }
+        } catch (\Exception $e) {
+            error_log("Application Show Error: " . $e->getMessage());
             ResponseHelper::error("Server Error: " . $e->getMessage(), 500);
         }
     }

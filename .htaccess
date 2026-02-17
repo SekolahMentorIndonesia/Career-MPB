@@ -2,13 +2,25 @@
   RewriteEngine On
   RewriteBase /
   
+  # Crucial for Hostinger/Shared Hosting to pass Authorization header
+  CGIPassAuth On
+  
+  # Map Authorization header to environment variable
+  SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1
+  SetEnvIf X-Authorization "(.*)" HTTP_X_AUTHORIZATION=$1
+  
+  # Fallback for some Apache configurations
+  RewriteCond %{HTTP:Authorization} ^(.*)
+  RewriteRule .* - [e=HTTP_AUTHORIZATION:%1]
+  
+  RewriteCond %{HTTP:X-Authorization} ^(.*)
+  RewriteRule .* - [e=HTTP_X_AUTHORIZATION:%1]
+
   # Forward to /backend/ if request starts with /backend
-  # This ensures API requests are handled by the backend subfolder
   RewriteCond %{REQUEST_URI} ^/backend/(.*)$ [NC]
   RewriteRule ^backend/(.*)$ backend/$1 [L]
 
-  # SPA Routing: If the request is not for a real file or directory,
-  # and not for the backend, route it to index.html
+  # SPA Routing
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{REQUEST_FILENAME} !-d
   RewriteCond %{REQUEST_URI} !^/backend/ [NC]

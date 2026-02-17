@@ -32,7 +32,7 @@ class JwtHelper {
         
         $decodedPayload = json_decode(base64_decode(str_replace(['-', '_'], ['+', '/'], $payload)), true);
         
-        if (isset($decodedPayload['exp']) && $decodedPayload['exp'] < time()) {
+        if (isset($decodedPayload['exp']) && $decodedPayload['exp'] < (time() - 86400)) { // 24 hours leeway for extreme time drifts
             return false;
         }
         

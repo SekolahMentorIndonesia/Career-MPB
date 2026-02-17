@@ -43,7 +43,7 @@ class UserController {
         $data = json_decode(file_get_contents("php://input"), true);
 
         // Fetch current user details including provider
-        $query = "SELECT email, phone_verified_at, provider FROM users WHERE id = :id";
+        $query = "SELECT email, phone, phone_verified_at, provider FROM users WHERE id = :id";
         $stmt = $this->db->prepare($query);
         $stmt->bindParam(":id", $user['id']);
         $stmt->execute();
@@ -330,8 +330,7 @@ class UserController {
         $user = AuthMiddleware::authenticate();
         
         try {
-            $query = "SELECT cv_url, photo_url, portfolio_url, portfolio_link, ktp_url, other_url, paklaring_url 
-                      FROM user_documents WHERE user_id = :user_id";
+            $query = "SELECT * FROM user_documents WHERE user_id = :user_id";
             $stmt = $this->db->prepare($query);
             $stmt->execute([':user_id' => $user['id']]);
             
@@ -357,6 +356,7 @@ class UserController {
                 'pasFoto' => ['field' => 'photo_url', 'types' => ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'], 'label' => 'Pas Foto'],
                 'portofolioFile' => ['field' => 'portfolio_url', 'types' => ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg', 'image/webp'], 'label' => 'Portofolio'],
                 'ktp' => ['field' => 'ktp_url', 'types' => ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'], 'label' => 'KTP'],
+                'ijazah' => ['field' => 'ijazah_url', 'types' => ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg', 'image/webp'], 'label' => 'Ijazah'],
                 'sertifikat' => ['field' => 'other_url', 'types' => ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg', 'image/webp'], 'label' => 'Sertifikat'],
                 'paklaring' => ['field' => 'paklaring_url', 'types' => ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg', 'image/webp'], 'label' => 'Paklaring']
             ];
@@ -511,18 +511,20 @@ class UserController {
             $userData = $stmt->fetch(PDO::FETCH_ASSOC);
 
             $filledCount = 0;
-            foreach ($profileFields as $field) {
-                if (!empty($userData[$field])) $filledCount++;
+            if ($userData) {
+                foreach ($profileFields as $field) {
+                    if (!empty($userData[$field])) $filledCount++;
+                }
             }
             $profilePercentage = round(($filledCount / count($profileFields)) * 100);
 
             // 2. Document Status
-            $docQuery = "SELECT cv_url, photo_url, ktp_url FROM user_documents WHERE user_id = :id";
+            $docQuery = "SELECT * FROM user_documents WHERE user_id = :id";
             $docStmt = $this->db->prepare($docQuery);
             $docStmt->execute([':id' => $user['id']]);
             $docs = $docStmt->fetch(PDO::FETCH_ASSOC);
             
-            $isDocumentUploaded = ($docs && !empty($docs['cv_url']) && !empty($docs['photo_url']) && !empty($docs['ktp_url']));
+            $isDocumentUploaded = ($docs && !empty($docs['cv_url']) && !empty($docs['photo_url']) && !empty($docs['ktp_url']) && !empty($docs['ijazah_url']));
 
             // 3. Application Status
             $appQuery = "SELECT COUNT(*) FROM applications WHERE user_id = :id";
@@ -532,7 +534,7 @@ class UserController {
 
             ResponseHelper::success("Dashboard summary fetched", [
                 'profile_percentage' => $profilePercentage,
-                'is_profile_complete' => ($profilePercentage >= 100),
+                'is_profile_complete' => ($profilePercentage >= 100 && $isDocumentUploaded),
                 'is_document_uploaded' => $isDocumentUploaded,
                 'has_applied' => $hasApplied
             ]);
