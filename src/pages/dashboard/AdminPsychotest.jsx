@@ -278,36 +278,36 @@ const AdminPsychotest = () => {
               onClick={() => setActiveTab('participants')}
               className={clsx(
                 activeTab === 'participants'
-                  ? 'border-blue-500 text-blue-600'
+                  ? 'border-indigo-500 text-indigo-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300',
                 'group inline-flex items-center py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap'
               )}
             >
-              <Users className={clsx(activeTab === 'participants' ? 'text-blue-600' : 'text-gray-400 group-hover:text-gray-500', '-ml-0.5 mr-2 h-5 w-5')} />
+              <Users className={clsx(activeTab === 'participants' ? 'text-indigo-600' : 'text-gray-400 group-hover:text-gray-500', '-ml-0.5 mr-2 h-5 w-5')} />
               <span>Daftar Peserta</span>
             </button>
             <button
               onClick={() => setActiveTab('questions')}
               className={clsx(
                 activeTab === 'questions'
-                  ? 'border-blue-500 text-blue-600'
+                  ? 'border-indigo-500 text-indigo-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300',
                 'group inline-flex items-center py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap'
               )}
             >
-              <FileText className={clsx(activeTab === 'questions' ? 'text-blue-600' : 'text-gray-400 group-hover:text-gray-500', '-ml-0.5 mr-2 h-5 w-5')} />
+              <FileText className={clsx(activeTab === 'questions' ? 'text-indigo-600' : 'text-gray-400 group-hover:text-gray-500', '-ml-0.5 mr-2 h-5 w-5')} />
               <span>Bank Soal</span>
             </button>
             <button
               onClick={() => setActiveTab('summary')}
               className={clsx(
                 activeTab === 'summary'
-                  ? 'border-blue-500 text-blue-600'
+                  ? 'border-indigo-500 text-indigo-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300',
                 'group inline-flex items-center py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap'
               )}
             >
-              <BarChart className={clsx(activeTab === 'summary' ? 'text-blue-600' : 'text-gray-400 group-hover:text-gray-500', '-ml-0.5 mr-2 h-5 w-5')} />
+              <BarChart className={clsx(activeTab === 'summary' ? 'text-indigo-600' : 'text-gray-400 group-hover:text-gray-500', '-ml-0.5 mr-2 h-5 w-5')} />
               <span>Ringkasan</span>
             </button>
           </nav>
@@ -323,13 +323,13 @@ const AdminPsychotest = () => {
                   <input
                     type="text"
                     placeholder="Cari peserta..."
-                    className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                   />
                 </div>
                 <div className="flex gap-2 w-full sm:w-auto">
                   <button
                     onClick={handleGenerateLink}
-                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                   >
                     <LinkIcon className="h-4 w-4 mr-2" />
                     Generate Link
@@ -339,7 +339,7 @@ const AdminPsychotest = () => {
 
               {isLoading ? (
                 <div className="text-center py-10 text-gray-500">
-                  <Loader2 className="mx-auto h-12 w-12 text-blue-500 animate-spin mb-2" />
+                  <Loader2 className="mx-auto h-12 w-12 text-indigo-500 animate-spin mb-2" />
                   <p>Memuat data peserta...</p>
                 </div>
               ) : participants.length === 0 ? (
@@ -370,7 +370,7 @@ const AdminPsychotest = () => {
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-xs">{participant.job_title}</td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                              <span className="px-2.5 py-1 inline-flex text-xs leading-5 font-bold rounded-full bg-blue-50 text-blue-700 border border-blue-100">{participant.status}</span>
+                              <span className="px-2.5 py-1 inline-flex text-xs leading-5 font-bold rounded-full bg-blue-50 text-indigo-700 border border-blue-100">{participant.status}</span>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                               {participant.psychotest_results ? (
@@ -399,7 +399,7 @@ const AdminPsychotest = () => {
                             <h4 className="text-sm font-black text-gray-900 leading-tight">{p.applicant_name}</h4>
                             <p className="text-[10px] text-gray-500 font-medium">{p.applicant_email}</p>
                           </div>
-                          <span className="px-2 py-0.5 text-[9px] font-black uppercase rounded-full bg-blue-50 text-blue-700 border border-blue-100">
+                          <span className="px-2 py-0.5 text-[9px] font-black uppercase rounded-full bg-blue-50 text-indigo-700 border border-blue-100">
                             {p.status}
                           </span>
                         </div>
@@ -453,7 +453,7 @@ const AdminPsychotest = () => {
                       onClick={() => {
                         window.open(`${window.location.origin}/test-psikotes/demo?mode=preview`, '_blank');
                       }}
-                      className="flex items-center text-sm bg-blue-50 text-blue-700 border border-blue-100 px-4 py-2 rounded-md hover:bg-blue-600 hover:text-white transition-all shadow-sm font-bold"
+                      className="flex items-center text-sm bg-blue-50 text-indigo-700 border border-blue-100 px-4 py-2 rounded-md hover:bg-indigo-600 hover:text-white transition-all shadow-sm font-bold"
                     >
                       <Eye className="w-4 h-4 mr-2" />
                       Uji Coba Tes
@@ -475,7 +475,7 @@ const AdminPsychotest = () => {
                             await handleUpdateSettings();
                             setIsEditingSettings(false);
                           }}
-                          className="flex items-center text-sm bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors shadow-sm"
+                          className="flex items-center text-sm bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition-colors shadow-sm"
                         >
                           <Save className="w-4 h-4 mr-2" />
                           Simpan
@@ -506,7 +506,7 @@ const AdminPsychotest = () => {
                         value={settings.test_duration_minutes}
                         onChange={(e) => setSettings({ ...settings, test_duration_minutes: e.target.value })}
                         className={clsx(
-                          "w-24 px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500",
+                          "w-24 px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500",
                           !isEditingSettings ? "bg-gray-100 text-gray-500 border-gray-200 cursor-not-allowed" : "bg-white border-gray-300"
                         )}
                       />
@@ -525,13 +525,13 @@ const AdminPsychotest = () => {
                           id="multiple-choice"
                           type="checkbox"
                           disabled={!isEditingSettings}
-                          className={clsx("h-5 w-5 text-blue-600 focus:ring-blue-500 border-gray-300 rounded", !isEditingSettings && "cursor-not-allowed opacity-60")}
+                          className={clsx("h-5 w-5 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded", !isEditingSettings && "cursor-not-allowed opacity-60")}
                           checked={settings.use_multiple_choice === '1'}
                           onChange={(e) => setSettings({ ...settings, use_multiple_choice: e.target.checked ? '1' : '0' })}
                         />
                         <label htmlFor="multiple-choice" className="font-semibold text-gray-800">Pilihan Ganda</label>
                       </div>
-                      <div className={clsx("p-2 rounded-full", settings.use_multiple_choice === '1' ? "bg-blue-100 text-blue-600" : "bg-gray-200 text-gray-400")}>
+                      <div className={clsx("p-2 rounded-full", settings.use_multiple_choice === '1' ? "bg-blue-100 text-indigo-600" : "bg-gray-200 text-gray-400")}>
                         <CheckCircle className="w-5 h-5" />
                       </div>
                     </div>
@@ -546,7 +546,7 @@ const AdminPsychotest = () => {
                           value={settings.multiple_choice_count}
                           onChange={(e) => setSettings({ ...settings, multiple_choice_count: e.target.value })}
                           className={clsx(
-                            "w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500",
+                            "w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500",
                             !isEditingSettings ? "bg-gray-100 text-gray-500 border-gray-200 cursor-not-allowed" : "bg-white border-gray-300"
                           )}
                         />
@@ -584,7 +584,7 @@ const AdminPsychotest = () => {
                           value={settings.essay_count}
                           onChange={(e) => setSettings({ ...settings, essay_count: e.target.value })}
                           className={clsx(
-                            "w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500",
+                            "w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500",
                             !isEditingSettings ? "bg-gray-100 text-gray-500 border-gray-200 cursor-not-allowed" : "bg-white border-gray-300"
                           )}
                         />
@@ -608,7 +608,7 @@ const AdminPsychotest = () => {
                           setNewQuestionData({ type: 'multiple_choice', question: '', options: ['', '', '', ''], answer_key: '' });
                           setIsAddQuestionModalOpen(true);
                         }}
-                        className="inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700"
+                        className="inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700"
                       >
                         <Plus className="w-4 h-4 mr-1" /> Tambah Soal
                       </button>
@@ -656,7 +656,7 @@ const AdminPsychotest = () => {
                           setNewQuestionData({ type: 'essay', question: '', options: null, answer_key: null });
                           setIsAddQuestionModalOpen(true);
                         }}
-                        className="inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700"
+                        className="inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700"
                       >
                         <Plus className="w-4 h-4 mr-1" /> Tambah Soal
                       </button>
@@ -695,7 +695,7 @@ const AdminPsychotest = () => {
                 <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
                   <p className="text-sm font-medium text-gray-500 mb-1">Total Peserta</p>
                   <p className="text-3xl font-bold text-gray-900">{summaryData?.total_participants || 0}</p>
-                  <div className="mt-2 flex items-center text-xs text-blue-600">
+                  <div className="mt-2 flex items-center text-xs text-indigo-600">
                     <Users className="w-3 h-3 mr-1" />
                     <span>Mengerjakan Soal</span>
                   </div>
@@ -785,7 +785,7 @@ const AdminPsychotest = () => {
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Pertanyaan</label>
                     <textarea
-                      className="w-full border rounded-md p-2 text-sm focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full border rounded-md p-2 text-sm focus:ring-indigo-500 focus:border-indigo-500"
                       rows="3"
                       value={newQuestionData.question}
                       onChange={(e) => setNewQuestionData({ ...newQuestionData, question: e.target.value })}
@@ -804,7 +804,7 @@ const AdminPsychotest = () => {
                             checked={newQuestionData.answer_key === opt && opt !== ''}
                             onChange={() => setNewQuestionData({ ...newQuestionData, answer_key: opt })}
                             disabled={!opt}
-                            className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                            className="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"
                           />
                           <span className="w-6 text-sm font-bold text-gray-500">{String.fromCharCode(65 + i)}.</span>
                           <input
@@ -828,7 +828,7 @@ const AdminPsychotest = () => {
 
                   <div className="flex justify-end pt-4 gap-2">
                     <button type="button" onClick={() => setIsAddQuestionModalOpen(false)} className="px-4 py-2 border rounded-md text-sm hover:bg-gray-50">Batal</button>
-                    <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700">Simpan Soal</button>
+                    <button type="submit" className="px-4 py-2 bg-indigo-600 text-white rounded-md text-sm hover:bg-indigo-700">Simpan Soal</button>
                   </div>
                 </form>
               </div>
@@ -868,7 +868,7 @@ const AdminPsychotest = () => {
                     <label className="block text-sm font-medium text-gray-700 mb-1">Cari & Pilih Peserta</label>
                     <Combobox value={selectedUser} onChange={setSelectedUser}>
                       <div className="relative mt-1">
-                        <div className="relative w-full cursor-default overflow-hidden rounded-md border border-gray-300 bg-white text-left shadow-sm focus-within:ring-1 focus-within:ring-blue-500 focus-within:border-blue-500 sm:text-sm">
+                        <div className="relative w-full cursor-default overflow-hidden rounded-md border border-gray-300 bg-white text-left shadow-sm focus-within:ring-1 focus-within:ring-indigo-500 focus-within:border-indigo-500 sm:text-sm">
                           <ComboboxInput
                             className="w-full border-none py-2 pl-3 pr-10 text-sm leading-5 text-gray-900 focus:ring-0"
                             displayValue={(user) => user ? `${user.applicant_name} (${user.applicant_email})` : ''}
@@ -890,7 +890,7 @@ const AdminPsychotest = () => {
                                 key={user.id}
                                 className={({ active }) =>
                                   clsx(
-                                    active ? 'text-white bg-blue-600' : 'text-gray-900',
+                                    active ? 'text-white bg-indigo-600' : 'text-gray-900',
                                     'relative cursor-default select-none py-2 pl-3 pr-9'
                                   )
                                 }
@@ -904,7 +904,7 @@ const AdminPsychotest = () => {
                                     {selected ? (
                                       <span
                                         className={clsx(
-                                          active ? 'text-white' : 'text-blue-600',
+                                          active ? 'text-white' : 'text-indigo-600',
                                           'absolute inset-y-0 right-0 flex items-center pr-4'
                                         )}
                                       >
@@ -925,11 +925,11 @@ const AdminPsychotest = () => {
                     <div className="mb-4 bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-center justify-between">
                       <div className="flex-1 truncate mr-4">
                         <p className="text-sm font-medium text-blue-800">Link Psikotes:</p>
-                        <p className="text-sm text-blue-600 truncate">{generatedLinkForUser}</p>
+                        <p className="text-sm text-indigo-600 truncate">{generatedLinkForUser}</p>
                       </div>
                       <button
                         onClick={() => navigator.clipboard.writeText(generatedLinkForUser)}
-                        className="flex-shrink-0 p-1 text-blue-600 hover:bg-blue-100 rounded-full"
+                        className="flex-shrink-0 p-1 text-indigo-600 hover:bg-blue-100 rounded-full"
                         title="Salin Link"
                       >
                         <Copy className="h-4 w-4" />
@@ -938,7 +938,7 @@ const AdminPsychotest = () => {
                   )}
 
                   <button
-                    className="mt-4 w-full inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                    className="mt-4 w-full inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                     onClick={handleGenerateLinkForUser}
                   >
                     Generate Link

@@ -36,6 +36,9 @@ const UserPsychotest = () => {
     if (data.status === 'Administrasi' || data.status === 'Seleksi Administrasi') return { icon: <Clock className="h-6 w-6 text-yellow-500" />, text: 'Menunggu Review Berkas', subtext: 'Lamaran Anda sedang direview. Link psikotes akan muncul jika Anda lolos tahap administrasi.', color: 'orange' };
     if (data.status === 'Ditolak') return { icon: <CheckCircle className="h-6 w-6 text-red-500" />, text: 'Belum Beruntung', subtext: 'Maaf, lamaran Anda belum memenuhi kualifikasi kami untuk tahap selanjutnya.', color: 'red' };
 
+    // Check if test is completed
+    if (data.score !== null) return { icon: <CheckCircle className="h-6 w-6 text-green-500" />, text: 'Psikotes Selesai', subtext: 'Anda telah menyelesaikan tahap psikotes. Hasil pengerjaan sedang ditinjau oleh tim kami.', color: 'green' };
+
     // If moved to Psikotes but link not yet assigned by admin
     if (!data.link) return { icon: <Clock className="h-6 w-6 text-blue-500" />, text: 'Terjadwal: Psikotes', subtext: 'Anda lolos ke tahap psikotes! Admin akan segera mengirimkan link pengerjaan di sini.', color: 'blue' };
 
@@ -55,81 +58,98 @@ const UserPsychotest = () => {
 
   return (
     <div className="min-h-screen bg-white font-sans text-gray-900 antialiased p-6 pb-20">
-      <div className="max-w-md mx-auto">
+      <div className="max-w-4xl mx-auto">
         {/* Header */}
-        <div className="flex items-center gap-4 mb-10">
-          <div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-100">
-            <Brain className="w-6 h-6 text-white" />
+        <div className="flex items-center gap-4 mb-6">
+          <div className="w-10 h-10 bg-indigo-600 rounded-lg flex items-center justify-center shadow-sm">
+            <Brain className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold tracking-tight text-indigo-900">Psikotes</h1>
-            <p className="text-xs text-gray-400 font-medium">Rekrutmen MPB Corps</p>
+            <h1 className="text-xl font-bold text-gray-900">Psikotes</h1>
+            <p className="text-xs text-gray-500">Rekrutmen MPB Corps</p>
           </div>
         </div>
 
         {/* Status Card */}
-        <div className="bg-white border-2 border-gray-50 rounded-[2rem] p-8 mb-8 shadow-sm">
-          <div className="flex items-center gap-2 mb-6">
-            <div className="w-1.5 h-1.5 rounded-full bg-indigo-500"></div>
-            <h2 className="text-xs font-bold text-gray-400 uppercase tracking-widest">Status Seleksi</h2>
+        <div className="bg-white border border-gray-200 rounded-xl p-5 mb-5 shadow-sm">
+          <h2 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-4 border-b border-gray-50 pb-2">Status Seleksi</h2>
+
+          <div className="flex items-center gap-4 mb-6">
+            <div className="flex-shrink-0 w-12 h-12 bg-gray-50 rounded-lg flex items-center justify-center border border-gray-100">
+              {React.cloneElement(status.icon, { className: "w-6 h-6 " + status.icon.props.className })}
+            </div>
+            <div>
+              <p className="text-lg font-bold text-gray-900">{status.text}</p>
+              <p className="text-xs text-gray-500 mt-0.5">{status.subtext}</p>
+            </div>
           </div>
 
-          <div className="flex flex-col gap-6">
-            <div className="flex items-center gap-4">
-              <div className="w-14 h-14 bg-gray-50 rounded-2xl flex items-center justify-center border border-gray-100">
-                {status.icon}
-              </div>
-              <div>
-                <p className="text-xl font-bold text-gray-900">{status.text}</p>
-                <p className="text-xs text-gray-500 font-medium mt-0.5">{status.subtext}</p>
-              </div>
-            </div>
-
-            {data?.link && (
+          {data?.link && data.score === null ? (
+            <div className="pt-2">
               <a
                 href={data.link}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group flex items-center justify-center gap-3 w-full py-4 bg-indigo-600 text-white font-bold rounded-2xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100 active:scale-95 text-base"
+                className="flex items-center justify-center gap-2 w-full py-3 bg-indigo-600 text-white text-sm font-bold rounded-lg hover:bg-indigo-700 transition-all active:scale-[0.99]"
               >
-                Mulai Psikotes
-                <ExternalLink className="w-4 h-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                <ExternalLink className="w-4 h-4" />
+                Mulai Kerjakan Psikotes
               </a>
-            )}
-          </div>
+            </div>
+          ) : data?.score !== null && data?.score !== undefined ? (
+            <div className="bg-green-50 rounded-lg p-3 text-center border border-green-100">
+              <p className="text-[11px] text-green-700 font-bold flex items-center justify-center gap-2">
+                <CheckCircle className="w-3.5 h-3.5" />
+                Anda sudah selesai mengerjakan psikotes ini.
+              </p>
+            </div>
+          ) : (
+            <div className="bg-gray-50 rounded-lg p-3 text-center border border-gray-100">
+              <p className="text-[11px] text-gray-500 font-medium italic">
+                {data?.status === 'Ditolak'
+                  ? "Tahap seleksi Anda telah selesai."
+                  : "Tombol pengerjaan akan muncul di sini jika link sudah dikirim oleh Admin."}
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Info Section */}
-        <div className="space-y-6">
-          <div className="bg-gray-50 rounded-3xl p-6 border border-gray-100">
-            <h3 className="text-sm font-bold text-gray-900 mb-4 flex items-center gap-2">
-              <CheckCircle className="w-4 h-4 text-indigo-500" />
-              Informasi Penting
-            </h3>
-            <ul className="space-y-3">
-              {[
-                "Pengerjaan hanya dapat dilakukan 1 kali.",
-                "Gunakan laptop/PC untuk pengalaman terbaik.",
-                "Pastikan koneksi internet stabil.",
-                "Sistem anti-cheat aktif secara otomatis."
-              ].map((text, idx) => (
-                <li key={idx} className="flex gap-3 text-xs text-gray-600 leading-relaxed">
-                  <span className="text-indigo-300">•</span>
-                  {text}
-                </li>
-              ))}
-            </ul>
+        <div className="bg-white border border-gray-200 rounded-xl p-5">
+          <h3 className="text-xs font-bold text-gray-900 mb-4 flex items-center gap-2">
+            <CheckCircle className="w-4 h-4 text-indigo-600" />
+            Informasi & Aturan Penting
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-4">
+            {[
+              { text: "Pengerjaan hanya dapat dilakukan 1 kali.", bold: true },
+              { text: "Wajib menggunakan Laptop/PC (Browser Desktop).", bold: false },
+              { text: "Wajib menggunakan mode Fullscreen saat ujian.", bold: true },
+              { text: "Pastikan koneksi internet stabil & baterai penuh.", bold: false },
+              { text: "Dilarang pindah tab / membuka aplikasi lain.", bold: true },
+              { text: "Sistem Anti-Cheat & Deteksi Wajah aktif otomatis.", bold: false },
+              { text: "Pelanggaran 3x akan otomatis diskualifikasi.", bold: true },
+              { text: "Gunakan environment yang tenang dan terang.", bold: false }
+            ].map((item, idx) => (
+              <div key={idx} className="flex gap-2.5 text-[11px] text-gray-600 leading-relaxed">
+                <span className="text-indigo-500 font-bold mt-0.5">•</span>
+                <span className={item.bold ? "font-bold text-gray-900" : ""}>{item.text}</span>
+              </div>
+            ))}
           </div>
+        </div>
 
-          <div className="flex flex-col items-center justify-center p-6 text-center">
-            <p className="text-xs text-gray-400 font-medium mb-4">Butuh bantuan teknis?</p>
-            <button
-              onClick={() => window.open('https://wa.me/6283198291207', '_blank')}
-              className="text-xs font-bold text-indigo-600 hover:text-indigo-700 underline flex items-center gap-1"
-            >
-              Hubungi CS Support
-            </button>
-          </div>
+        {/* Help */}
+        <div className="mt-6 text-center">
+          <p className="text-[10px] text-gray-400 mb-1">Mengalami kendala teknis?</p>
+          <a
+            href="https://wa.me/6283198291207"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs font-bold text-indigo-600 hover:underline"
+          >
+            Hubungi CS Support
+          </a>
         </div>
       </div>
     </div>

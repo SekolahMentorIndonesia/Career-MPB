@@ -115,6 +115,7 @@ const UserDocuments = () => {
     portofolioFile: null,
     ktp: null,
     ijazah: null,
+    transkripNilai: null,
     sertifikat: null,
     paklaring: null
   });
@@ -169,7 +170,7 @@ const UserDocuments = () => {
       return;
     }
 
-    if ((key === 'pasFoto' || key === 'ktp' || key === 'ijazah') && !file.type.startsWith('image/') && file.type !== 'application/pdf') {
+    if ((key === 'pasFoto' || key === 'ktp' || key === 'ijazah' || key === 'transkripNilai') && !file.type.startsWith('image/') && file.type !== 'application/pdf') {
       showNotification('error', 'Format Tidak Sesuai', 'Dokumen harus dalam format gambar (JPG, PNG, WEBP) atau PDF.');
       e.target.value = '';
       return;
@@ -189,6 +190,7 @@ const UserDocuments = () => {
     if (portofolioLink) formData.append('portfolioLink', portofolioLink);
     if (files.ktp) formData.append('ktp', files.ktp);
     if (files.ijazah) formData.append('ijazah', files.ijazah);
+    if (files.transkripNilai) formData.append('transkripNilai', files.transkripNilai);
     if (files.sertifikat) formData.append('sertifikat', files.sertifikat);
     if (files.paklaring) formData.append('paklaring', files.paklaring);
 
@@ -204,7 +206,7 @@ const UserDocuments = () => {
       if (data.success) {
         showNotification('success', 'Berhasil!', 'Dokumen telah disimpan.');
         setIsEditing(false);
-        setFiles({ cv: null, pasFoto: null, portofolioFile: null, ktp: null, ijazah: null, sertifikat: null, paklaring: null });
+        setFiles({ cv: null, pasFoto: null, portofolioFile: null, ktp: null, ijazah: null, transkripNilai: null, sertifikat: null, paklaring: null });
         fetchExistingDocuments();
       } else {
         showNotification('error', 'Gagal!', data.message || 'Gagal menyimpan dokumen');
@@ -219,7 +221,7 @@ const UserDocuments = () => {
 
   const cancelEditing = () => {
     setIsEditing(false);
-    setFiles({ cv: null, pasFoto: null, portofolioFile: null, ktp: null, ijazah: null, sertifikat: null, paklaring: null });
+    setFiles({ cv: null, pasFoto: null, portofolioFile: null, ktp: null, ijazah: null, transkripNilai: null, sertifikat: null, paklaring: null });
     // Re-fetch to reset portofolio link if cancelled
     fetchExistingDocuments();
   };
@@ -227,7 +229,8 @@ const UserDocuments = () => {
   const areMandatoryUploaded = (files.cv || existingDocs.cv_url) &&
     (files.pasFoto || existingDocs.photo_url) &&
     (files.ktp || existingDocs.ktp_url) &&
-    (files.ijazah || existingDocs.ijazah_url);
+    (files.ijazah || existingDocs.ijazah_url) &&
+    (files.transkripNilai || existingDocs.transcript_url);
 
   if (isFetching) {
     return (
@@ -289,7 +292,7 @@ const UserDocuments = () => {
           <div>
             <p className="font-bold text-rose-900">Dokumen Belum Lengkap</p>
             <p className="text-sm text-rose-700 leading-relaxed">
-              Silakan klik tombol <b>Ubah Dokumen</b> di atas dan unggah CV, Pas Foto, KTP, serta Ijazah agar Anda dapat mulai melamar posisi yang tersedia.
+              Silakan klik tombol <b>Ubah Dokumen</b> di atas dan unggah CV, Pas Foto, KTP, Ijazah, serta Transkrip Nilai agar Anda dapat mulai melamar posisi yang tersedia.
             </p>
           </div>
         </div>
@@ -349,6 +352,16 @@ const UserDocuments = () => {
             required={true}
             onChange={handleFileChange('ijazah')}
             uploadedFile={files.ijazah ? { file: files.ijazah } : { isExisting: !!existingDocs?.ijazah_url, url: existingDocs?.ijazah_url }}
+            description="Format PDF/JPG/PNG, Max 5MB"
+          />
+          <FileInput
+            label="Transkrip Nilai"
+            id="transkripNilai"
+            icon={FileText}
+            isEditing={isEditing}
+            required={true}
+            onChange={handleFileChange('transkripNilai')}
+            uploadedFile={files.transkripNilai ? { file: files.transkripNilai } : { isExisting: !!existingDocs?.transcript_url, url: existingDocs?.transcript_url }}
             description="Format PDF/JPG/PNG, Max 5MB"
           />
         </div>

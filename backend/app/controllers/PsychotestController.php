@@ -317,16 +317,16 @@ class PsychotestController {
             foreach ($answers as $ans) {
                 $qid = $ans['question_id'];
                 $userAns = $ans['answer'];
-                $isCorrect = null;
+                $isCorrect = 0; // Default to 0 (incorrect or non-scoreable like essay)
 
                 if (isset($keyMap[$qid]) && $keyMap[$qid]['type'] === 'multiple_choice') {
                     $totalMC++;
                     // Use trim and string conversion for robust comparison
                     if ($userAns !== null && trim((string)$keyMap[$qid]['answer_key']) === trim((string)$userAns)) {
                         $score++;
-                        $isCorrect = true;
+                        $isCorrect = 1;
                     } else {
-                        $isCorrect = false;
+                        $isCorrect = 0;
                     }
                 }
                 

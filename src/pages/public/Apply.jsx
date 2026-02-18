@@ -19,8 +19,8 @@ const Apply = () => {
 
   // Requirement status - use fullUser if available, otherwise fallback to auth user
   const { percentage, isProfileComplete, isDocumentUploaded } = checkDataCompleteness(fullUser || user);
-  // Documents are now optional
-  const canApply = isProfileComplete;
+  // Documents are now mandatory
+  const canApply = isProfileComplete && isDocumentUploaded;
 
   useEffect(() => {
     const fetchData = async () => {
@@ -28,11 +28,21 @@ const Apply = () => {
         const token = localStorage.getItem('token');
         const headers = { 'Authorization': `Bearer ${token}` };
 
-        // 0. Fetch Full User Profile (to ensure we have detailed fields like ktp_rt, etc.)
-        const profileResponse = await fetch(`${window.API_BASE_URL}/api/user/profile`, { headers });
+        // 0. Fetch Full User Profile & Documents
+        const [profileResponse, docsResponse] = await Promise.all([
+          fetch(`${window.API_BASE_URL}/api/user/profile`, { headers }),
+          fetch(`${window.API_BASE_URL}/api/user/documents`, { headers })
+        ]);
+
         const profileResult = await profileResponse.json();
+        const docsResult = await docsResponse.json();
+
         if (profileResult.success) {
-          setFullUser(profileResult.data);
+          const combinedData = {
+            ...profileResult.data,
+            ...(docsResult.success ? docsResult.data : {})
+          };
+          setFullUser(combinedData);
         }
 
         // 1. Fetch user applications to check status
@@ -191,11 +201,11 @@ const Apply = () => {
                   {isDocumentUploaded ? (
                     <CheckCircle className="w-6 h-6 text-green-500" />
                   ) : (
-                    <span className="text-xs font-bold text-blue-500 bg-blue-100 px-2 py-1 rounded-md">Opsional</span>
+                    <span className="text-xs font-bold text-orange-500 bg-orange-100 px-2 py-1 rounded-md">Wajib</span>
                   )}
                 </div>
                 <h3 className="font-bold text-gray-900 mb-1">Dokumen Pendukung</h3>
-                <p className="text-sm text-gray-500 mb-4">CV, Pas Foto, dan KTP</p>
+                <p className="text-sm text-gray-500 mb-4">CV, Pas Foto, KTP, Ijazah, & Transkrip</p>
                 {!isDocumentUploaded && (
                   <Link to="/dashboard/user/documents" className="inline-flex items-center text-sm font-bold text-blue-600 hover:gap-2 transition-all">
                     Unggah Sekarang <ArrowRight className="w-4 h-4" />

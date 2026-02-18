@@ -410,16 +410,14 @@ const UserPsychotestExam = () => {
       {isDisqualified && <DisqualifiedOverlay />}
 
       {/* Header: Clean & Standard */}
-      <header className="sticky top-0 z-40 bg-white border-b border-gray-100 px-5 py-4">
-        <div className="max-w-xl mx-auto flex justify-between items-center">
+      <header className="sticky top-0 z-40 bg-white border-b border-gray-100 px-4 py-3">
+        <div className="max-w-xl mx-auto flex justify-between items-center transition-all">
           <div>
-            <h1 className="text-xl font-bold tracking-tight text-indigo-900">Psikotes Online</h1>
-            <p className="text-[10px] font-medium text-gray-400 uppercase tracking-widest mt-0.5">
-              Mode Pengerjaan
-            </p>
+            <h1 className="text-lg font-bold tracking-tight text-indigo-900">Psikotes Online</h1>
+            <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">MPB RECRUITMENT</p>
           </div>
-          <div className="flex items-center gap-3 bg-gray-50 px-3 py-2 rounded-xl border border-gray-100">
-            <Clock className={clsx("w-4 h-4", timeLeft < 60 ? 'text-red-500 animate-pulse' : 'text-indigo-500')} />
+          <div className="flex items-center gap-2 bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-100">
+            <Clock className={clsx("w-3.5 h-3.5", timeLeft < 60 ? 'text-red-500 animate-pulse' : 'text-indigo-500')} />
             <span className={clsx("text-sm font-bold tabular-nums", timeLeft < 60 ? 'text-red-600' : 'text-gray-700')}>
               {formatTime(timeLeft)}
             </span>
@@ -427,14 +425,14 @@ const UserPsychotestExam = () => {
         </div>
       </header>
 
-      <main className="flex-1 flex flex-col max-w-xl mx-auto w-full px-5 py-8 pb-32">
+      <main className="flex-1 flex flex-col max-w-xl mx-auto w-full px-5 py-6 pb-32">
         {!examStarted ? (
-          <div className="flex-1 flex flex-col justify-center text-center py-10">
-            <div className="w-20 h-20 bg-indigo-50 rounded-3xl flex items-center justify-center mx-auto mb-8">
-              <ShieldAlert className="w-10 h-10 text-indigo-600" />
+          <div className="flex-1 flex flex-col justify-center text-center py-6">
+            <div className="w-16 h-16 bg-indigo-50 rounded-2xl flex items-center justify-center mx-auto mb-6">
+              <ShieldAlert className="w-8 h-8 text-indigo-600" />
             </div>
-            <h2 className="text-2xl font-bold mb-4">Instruksi Psikotes</h2>
-            <div className="text-left space-y-4 mb-10 text-gray-600 text-sm leading-relaxed px-4">
+            <h2 className="text-xl font-bold mb-4">Instruksi Psikotes</h2>
+            <div className="text-left space-y-3 mb-8 text-gray-600 text-xs leading-relaxed px-2">
               <p>1. Wajib menggunakan mode <strong>layar penuh (fullscreen)</strong>.</p>
               <p>2. Dilarang berpindah tab, membuka aplikasi lain, atau DevTools.</p>
               <p>3. Pelanggaran lebih dari 2x akan berakibat <strong>diskualifikasi otomatis</strong>.</p>
@@ -443,27 +441,27 @@ const UserPsychotestExam = () => {
             </div>
             <button
               onClick={handleStartExam}
-              className="w-full py-4 bg-indigo-600 text-white font-bold rounded-2xl shadow-lg shadow-indigo-100 active:scale-95 transition-all text-lg"
+              className="w-full py-3.5 bg-indigo-600 text-white font-bold rounded-xl shadow-md active:scale-95 transition-all text-base"
             >
               Mulai Ujian
             </button>
           </div>
         ) : (
-          <div className="flex-1 flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div className="flex-1 flex flex-col animate-in fade-in slide-in-from-bottom-2 duration-300">
             {/* Progress Bar & Counter */}
-            <div className="mb-8">
+            <div className="mb-6">
               <div className="flex justify-between items-end mb-2">
-                <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">
-                  Pertanyaan {currentQuestionIndex + 1} / {totalQuestions}
+                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                  Soal {currentQuestionIndex + 1} / {totalQuestions}
                 </span>
                 <span className={clsx(
-                  "text-[10px] font-bold px-2 py-1 rounded-lg border",
+                  "text-[9px] font-bold px-2 py-0.5 rounded border",
                   answers[currentQuestion?.id] ? "bg-green-50 text-green-700 border-green-100" : "bg-amber-50 text-amber-700 border-amber-100"
                 )}>
-                  {answers[currentQuestion?.id] ? 'Terjawab' : 'Belum Terjawab'}
+                  {answers[currentQuestion?.id] ? 'Terjawab' : 'Belum Dijawab'}
                 </span>
               </div>
-              <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
+              <div className="w-full h-1 bg-gray-100 rounded-full overflow-hidden">
                 <div
                   className="h-full bg-indigo-500 transition-all duration-500"
                   style={{ width: `${((currentQuestionIndex + 1) / totalQuestions) * 100}%` }}
@@ -472,20 +470,20 @@ const UserPsychotestExam = () => {
             </div>
 
             {/* Question Text */}
-            <h2 className="text-xl md:text-2xl font-bold text-gray-800 leading-snug mb-10">
+            <h2 className="text-lg md:text-xl font-bold text-gray-800 leading-snug mb-6 text-center px-2">
               {currentQuestion?.question}
             </h2>
 
             {/* Options */}
             {currentQuestion?.type === 'multiple_choice' ? (
-              <div className="space-y-3">
+              <div className="space-y-2.5">
                 {currentQuestion?.options.map((option, i) => (
                   <label
                     key={i}
                     className={clsx(
-                      "flex items-center p-5 border-2 rounded-2xl cursor-pointer transition-all active:scale-[0.98]",
+                      "flex items-center p-4 border rounded-xl cursor-pointer transition-all active:scale-[0.99]",
                       answers[currentQuestion.id] === option
-                        ? "border-indigo-600 bg-indigo-50/30 ring-1 ring-indigo-600"
+                        ? "border-indigo-600 bg-indigo-50/20 ring-1 ring-indigo-600/10 shadow-sm"
                         : "border-gray-100 hover:border-gray-200 bg-white"
                     )}
                   >
@@ -498,7 +496,7 @@ const UserPsychotestExam = () => {
                       className="sr-only"
                     />
                     <div className={clsx(
-                      "w-8 h-8 rounded-lg flex items-center justify-center font-bold mr-4",
+                      "w-7 h-7 rounded flex items-center justify-center text-xs font-bold mr-3",
                       answers[currentQuestion.id] === option
                         ? "bg-indigo-600 text-white"
                         : "bg-gray-100 text-gray-400"
@@ -506,7 +504,7 @@ const UserPsychotestExam = () => {
                       {String.fromCharCode(65 + i)}
                     </div>
                     <span className={clsx(
-                      "font-medium",
+                      "text-sm font-medium",
                       answers[currentQuestion.id] === option ? "text-indigo-900" : "text-gray-700"
                     )}>{option}</span>
                   </label>
@@ -517,25 +515,25 @@ const UserPsychotestExam = () => {
                 placeholder="Ketik jawaban Anda di sini..."
                 value={answers[currentQuestion?.id] || ''}
                 onChange={(e) => handleOptionChange(currentQuestion.id, e.target.value)}
-                className="w-full h-64 p-5 border-2 border-gray-100 rounded-2xl focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 transition-all resize-none font-medium bg-gray-50"
+                className="w-full h-48 p-4 border border-gray-200 rounded-xl focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 transition-all resize-none text-sm bg-white"
               ></textarea>
             )}
 
             {/* Sticky Bottom Actions */}
-            <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 p-5 z-40">
-              <div className="max-w-xl mx-auto flex items-center justify-between gap-4">
+            <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 p-4 z-40 shadow-sm">
+              <div className="max-w-xl mx-auto flex items-center justify-between gap-3">
                 <button
                   onClick={() => setCurrentQuestionIndex(prev => Math.max(0, prev - 1))}
                   disabled={currentQuestionIndex === 0}
-                  className="p-4 border-2 border-gray-100 rounded-2xl disabled:opacity-30"
+                  className="p-3.5 border border-gray-200 rounded-xl disabled:opacity-30 hover:bg-gray-50 transition-colors"
                 >
-                  <ChevronLeft className="w-6 h-6 text-gray-400" />
+                  <ChevronLeft className="w-5 h-5 text-gray-600" />
                 </button>
 
                 {currentQuestionIndex < totalQuestions - 1 ? (
                   <button
                     onClick={() => setCurrentQuestionIndex(prev => prev + 1)}
-                    className="flex-1 py-4 bg-indigo-600 text-white font-bold rounded-2xl shadow-lg shadow-indigo-100 active:scale-95 transition-all text-center"
+                    className="flex-1 py-3.5 bg-indigo-600 text-white text-sm font-bold rounded-xl shadow-sm active:scale-95 transition-all text-center hover:bg-indigo-700"
                   >
                     Selanjutnya
                   </button>
@@ -543,27 +541,36 @@ const UserPsychotestExam = () => {
                   <button
                     onClick={() => setShowSubmitConfirm(true)}
                     disabled={isSubmitting}
-                    className="flex-1 py-4 bg-indigo-600 text-white font-bold rounded-2xl shadow-lg shadow-indigo-100 active:scale-95 transition-all flex items-center justify-center gap-2"
+                    className="flex-1 py-3.5 bg-indigo-600 text-white text-sm font-bold rounded-xl shadow-sm active:scale-95 transition-all flex items-center justify-center gap-2 hover:bg-indigo-700"
                   >
                     {isSubmitting ? (
-                      <Loader2 className="w-5 h-5 animate-spin" />
+                      <Loader2 className="w-4 h-4 animate-spin" />
                     ) : (
-                      <CheckCircle2 className="w-5 h-5" />
+                      <CheckCircle2 className="w-4 h-4" />
                     )}
                     {isSubmitting ? 'Mengirim...' : 'Selesai'}
                   </button>
                 )}
+
+                <button
+                  onClick={() => setCurrentQuestionIndex(prev => Math.min(totalQuestions - 1, prev + 1))}
+                  disabled={currentQuestionIndex === totalQuestions - 1}
+                  className="p-3.5 border border-gray-200 rounded-xl disabled:opacity-30 hover:bg-gray-50 transition-colors"
+                >
+                  <ChevronRight className="w-5 h-5 text-gray-600" />
+                </button>
               </div>
             </div>
 
-            {/* Mobile Navigation Dots */}
-            <div className="flex justify-center gap-2 mt-10 opacity-30">
+            {/* Navigation Dots */}
+            <div className="flex flex-wrap justify-center gap-1.5 mt-6 opacity-40">
               {testData.questions.map((_, i) => (
-                <div
+                <button
                   key={i}
+                  onClick={() => setCurrentQuestionIndex(i)}
                   className={clsx(
                     "w-1.5 h-1.5 rounded-full transition-all duration-300",
-                    currentQuestionIndex === i ? "w-4 bg-indigo-600" : "bg-gray-300"
+                    currentQuestionIndex === i ? "scale-110 bg-indigo-600 opacity-100" : "bg-gray-300"
                   )}
                 />
               ))}
