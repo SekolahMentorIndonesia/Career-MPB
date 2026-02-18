@@ -122,18 +122,18 @@ const UserPsychotest = () => {
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-4">
             {[
-              { text: "Pengerjaan hanya dapat dilakukan 1 kali.", bold: true },
-              { text: "Wajib menggunakan Laptop/PC (Browser Desktop).", bold: false },
-              { text: "Wajib menggunakan mode Fullscreen saat ujian.", bold: true },
+              { text: "Pengerjaan hanya dapat dilakukan 1 kali.", bold: false },
+              { text: "Bebas menggunakan perangkat apapun (Wajib Fullscreen).", bold: false },
+              { text: "Wajib menggunakan mode Fullscreen saat ujian.", bold: false },
               { text: "Pastikan koneksi internet stabil & baterai penuh.", bold: false },
-              { text: "Dilarang pindah tab / membuka aplikasi lain.", bold: true },
+              { text: "Dilarang pindah tab / membuka aplikasi lain.", bold: false },
               { text: "Sistem Anti-Cheat & Deteksi Wajah aktif otomatis.", bold: false },
-              { text: "Pelanggaran 3x akan otomatis diskualifikasi.", bold: true },
+              { text: "Pelanggaran 3x akan otomatis diskualifikasi.", bold: false },
               { text: "Gunakan environment yang tenang dan terang.", bold: false }
             ].map((item, idx) => (
               <div key={idx} className="flex gap-2.5 text-[11px] text-gray-600 leading-relaxed">
                 <span className="text-indigo-500 font-bold mt-0.5">•</span>
-                <span className={item.bold ? "font-bold text-gray-900" : ""}>{item.text}</span>
+                <span className="text-gray-900">{item.text}</span>
               </div>
             ))}
           </div>

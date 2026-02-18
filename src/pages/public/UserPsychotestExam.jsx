@@ -433,11 +433,11 @@ const UserPsychotestExam = () => {
             </div>
             <h2 className="text-xl font-bold mb-4">Instruksi Psikotes</h2>
             <div className="text-left space-y-3 mb-8 text-gray-600 text-xs leading-relaxed px-2">
-              <p>1. Wajib menggunakan mode <strong>layar penuh (fullscreen)</strong>.</p>
+              <p>1. Bebas menggunakan perangkat apapun (Wajib Fullscreen).</p>
               <p>2. Dilarang berpindah tab, membuka aplikasi lain, atau DevTools.</p>
-              <p>3. Pelanggaran lebih dari 2x akan berakibat <strong>diskualifikasi otomatis</strong>.</p>
-              <p>4. Total durasi pengerjaan adalah <strong>{testData.duration} menit</strong>.</p>
-              <p>5. <strong>Seluruh pertanyaan wajib dijawab</strong> sebelum mengakhiri ujian.</p>
+              <p>3. Pelanggaran lebih dari 2x akan berakibat diskualifikasi otomatis.</p>
+              <p>4. Total durasi pengerjaan adalah {testData.duration} menit.</p>
+              <p>5. Seluruh pertanyaan wajib dijawab sebelum mengakhiri ujian.</p>
             </div>
             <button
               onClick={handleStartExam}
