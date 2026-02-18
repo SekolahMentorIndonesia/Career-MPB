@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { Loader2, AlertCircle, Clock, CheckCircle2, ChevronLeft, ChevronRight, Grid, LayoutGrid, ShieldAlert, Ban, HelpCircle } from 'lucide-react';
+import { Loader2, AlertCircle, Clock, CheckCircle2, ChevronLeft, ChevronRight, Grid, LayoutGrid, ShieldAlert, Ban, HelpCircle, Brain } from 'lucide-react';
 import ConfirmationModal from '../../components/ConfirmationModal';
 import clsx from 'clsx';
 
@@ -253,6 +253,20 @@ const UserPsychotestExam = () => {
     }
   };
 
+  const handleNavigateToDashboard = () => {
+    exitFullscreen();
+    try {
+      const user = JSON.parse(localStorage.getItem('user'));
+      if (user?.role?.toUpperCase() === 'ADMIN') {
+        navigate('/dashboard/admin/psychotest');
+      } else {
+        navigate('/dashboard/user/psychotest');
+      }
+    } catch (e) {
+      navigate('/dashboard');
+    }
+  };
+
   const formatTime = (seconds) => {
     const min = Math.floor(seconds / 60);
     const sec = seconds % 60;
@@ -349,13 +363,10 @@ const UserPsychotestExam = () => {
           <h2 className="text-2xl font-bold text-gray-900 mb-3">Akses Ditolak</h2>
           <p className="text-gray-600 mb-8 leading-relaxed">{error}</p>
           <button
-            onClick={() => {
-              exitFullscreen();
-              navigate('/');
-            }}
+            onClick={handleNavigateToDashboard}
             className="w-full py-3 px-6 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-all shadow-lg shadow-blue-200"
           >
-            Kembali ke Beranda
+            Kembali ke Dashboard
           </button>
         </div>
       </div>
@@ -378,10 +389,7 @@ const UserPsychotestExam = () => {
             <p className="text-4xl font-black text-blue-900">{result?.result || result?.score}</p>
           </div>
           <button
-            onClick={() => {
-              exitFullscreen();
-              navigate('/');
-            }}
+            onClick={handleNavigateToDashboard}
             className="w-full py-3 px-6 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-all shadow-lg shadow-blue-200"
           >
             Selesai
@@ -395,302 +403,195 @@ const UserPsychotestExam = () => {
   const totalQuestions = testData?.questions.length || 0;
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] font-sans flex flex-col relative overflow-x-hidden">
+    <div className="min-h-screen bg-white font-sans text-gray-900 flex flex-col antialiased">
       {/* Anti-cheat UI */}
       {isFullscreenRequired && examStarted && !finished && !isDisqualified && <FullscreenRequiredOverlay />}
       {showWarning && <WarningModal />}
       {isDisqualified && <DisqualifiedOverlay />}
-      {/* Header Sticky */}
-      <div className="sticky top-0 z-30 bg-white border-b border-gray-100 px-6 py-3 shadow-sm">
-        <div className="max-w-[1400px] mx-auto flex justify-between items-center">
-          <div className="flex items-center gap-4">
-            <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-100">
-              <LayoutGrid className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <h1 className="text-lg font-black text-gray-900 leading-none">PSIKOTES ONLINE</h1>
-              <p className="text-xs text-gray-500 font-bold uppercase tracking-widest mt-1">
-                {isPreview ? 'Mode Pratinjau' : 'MPB Corps Recruitment'}
-              </p>
-            </div>
-          </div>
 
-          <div className="flex items-center gap-8">
-            <div className="flex items-center gap-3 bg-gray-50 px-4 py-2 rounded-xl border border-gray-100">
-              <Clock className={clsx("w-5 h-5", timeLeft < 60 ? 'text-red-500 animate-pulse' : 'text-blue-500')} />
-              <div>
-                <p className="text-[10px] text-gray-500 font-black uppercase tracking-tighter leading-none mb-1">Sisa Waktu</p>
-                <p className={`text-lg font-black tabular-nums leading-none ${timeLeft < 60 ? 'text-red-600' : 'text-gray-900'}`}>
-                  {formatTime(timeLeft)}
-                </p>
-              </div>
-            </div>
+      {/* Header: Clean & Standard */}
+      <header className="sticky top-0 z-40 bg-white border-b border-gray-100 px-5 py-4">
+        <div className="max-w-xl mx-auto flex justify-between items-center">
+          <div>
+            <h1 className="text-xl font-bold tracking-tight text-indigo-900">Psikotes Online</h1>
+            <p className="text-[10px] font-medium text-gray-400 uppercase tracking-widest mt-0.5">
+              Mode Pengerjaan
+            </p>
+          </div>
+          <div className="flex items-center gap-3 bg-gray-50 px-3 py-2 rounded-xl border border-gray-100">
+            <Clock className={clsx("w-4 h-4", timeLeft < 60 ? 'text-red-500 animate-pulse' : 'text-indigo-500')} />
+            <span className={clsx("text-sm font-bold tabular-nums", timeLeft < 60 ? 'text-red-600' : 'text-gray-700')}>
+              {formatTime(timeLeft)}
+            </span>
           </div>
         </div>
-      </div>
+      </header>
 
-      <div className="flex-1 max-w-[1400px] w-full mx-auto p-4 md:p-6 flex flex-col lg:flex-row gap-6">
-        {/* Submission Confirmation Modal */}
-        <ConfirmationModal
-          isOpen={showSubmitConfirm}
-          title="Konfirmasi Selesai"
-          message="Apakah Anda yakin ingin mengakhiri ujian psikotes ini? Pastikan semua jawaban telah terisi dengan benar."
-          confirmText="Ya, Selesai"
-          cancelText="Kembali"
-          type="info"
-          onConfirm={() => {
-            setShowSubmitConfirm(false);
-            handleSubmitExam();
-          }}
-          onCancel={() => setShowSubmitConfirm(false)}
-        />
-
+      <main className="flex-1 flex flex-col max-w-xl mx-auto w-full px-5 py-8 pb-32">
         {!examStarted ? (
-          <div className="w-full flex items-center justify-center py-12">
-            <div className="bg-white p-10 rounded-3xl shadow-xl border border-gray-100 text-center max-w-2xl w-full">
-              <h1 className="text-3xl font-black text-gray-900 mb-6">Instruksi Pengerjaan Psikotes</h1>
-              <div className="text-left space-y-6 mb-8">
-                {/* Aturan Dasar */}
-                <div className="bg-blue-50 border border-blue-100 rounded-2xl p-6">
-                  <h4 className="text-blue-900 font-black flex items-center gap-2 mb-3 text-sm">
-                    <ShieldAlert className="w-4 h-4" /> ATURAN DASAR
-                  </h4>
-                  <ul className="space-y-3 text-blue-800 text-[13px] font-medium">
-                    <li className="flex gap-2">
-                      <span className="text-blue-600">•</span>
-                      <span>Wajib menggunakan mode layar penuh (fullscreen).</span>
-                    </li>
-                    <li className="flex gap-2">
-                      <span className="text-blue-600">•</span>
-                      <span>Keluar dari fullscreen, berpindah tab, atau membuka aplikasi lain akan terdeteksi sistem.</span>
-                    </li>
-                    <li className="font-bold mt-2">Dilarang melakukan aktivitas berikut:</li>
-                    <li className="flex gap-2 pl-4">
-                      <span className="text-red-500">•</span>
-                      <span>Membuka tab atau aplikasi lain</span>
-                    </li>
-                    <li className="flex gap-2 pl-4">
-                      <span className="text-red-500">•</span>
-                      <span>Menggunakan shortcut copy–paste</span>
-                    </li>
-                    <li className="flex gap-2 pl-4">
-                      <span className="text-red-500">•</span>
-                      <span>Mengaktifkan Developer Tools</span>
-                    </li>
-                    <li className="flex gap-2 pl-4">
-                      <span className="text-red-500">•</span>
-                      <span>Menyegarkan (refresh) halaman</span>
-                    </li>
-                  </ul>
-                </div>
-
-                {/* Durasi */}
-                <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-6">
-                  <h4 className="text-emerald-900 font-black flex items-center gap-2 mb-3 text-sm">
-                    <Clock className="w-4 h-4" /> DURASI PENGERJAAN
-                  </h4>
-                  <ul className="space-y-2 text-emerald-800 text-[13px] font-medium">
-                    <li>Total waktu: <span className="font-black underline">{testData.duration} menit</span></li>
-                    <li>Waktu akan berjalan otomatis dan tidak dapat dihentikan.</li>
-                  </ul>
-                </div>
-
-                {/* Konsekuensi */}
-                <div className="bg-rose-50 border border-rose-100 rounded-2xl p-6">
-                  <h4 className="text-rose-900 font-black flex items-center gap-2 mb-3 text-sm">
-                    <AlertCircle className="w-4 h-4" /> PELANGGARAN & KONSEKUENSI
-                  </h4>
-                  <ul className="space-y-2 text-rose-800 text-[13px] font-medium">
-                    <li>Pelanggaran ke-1 & ke-2 → <span className="font-bold">Peringatan</span></li>
-                    <li>Pelanggaran ke-3 → <span className="font-black text-rose-600 uppercase">Tes dihentikan dan peserta didiskualifikasi</span></li>
-                  </ul>
-                  <p className="mt-4 text-[11px] text-rose-700 italic">
-                    * Jika terjadi kendala teknis serius, segera hubungi admin rekrutmen setelah tes berakhir.
-                  </p>
-                </div>
-
-                {/* Footnote */}
-                <div className="px-4 text-center">
-                  <p className="text-[11px] text-gray-500 font-bold flex items-center justify-center gap-2">
-                    <span role="img" aria-label="shield">🔐</span> Catatan Keamanan: Sistem ini dirancang untuk memastikan kejujuran peserta dan kesetaraan penilaian bagi seluruh pelamar.
-                  </p>
-                </div>
-              </div>
-              <button
-                onClick={handleStartExam}
-                className="py-4 px-12 bg-blue-600 hover:bg-blue-700 text-white font-black text-lg rounded-2xl transition-all shadow-xl shadow-blue-200 hover:-translate-y-1 active:scale-95 w-full md:w-auto"
-              >
-                Mulai Ujian Sekarang
-              </button>
+          <div className="flex-1 flex flex-col justify-center text-center py-10">
+            <div className="w-20 h-20 bg-indigo-50 rounded-3xl flex items-center justify-center mx-auto mb-8">
+              <ShieldAlert className="w-10 h-10 text-indigo-600" />
             </div>
+            <h2 className="text-2xl font-bold mb-4">Instruksi Psikotes</h2>
+            <div className="text-left space-y-4 mb-10 text-gray-600 text-sm leading-relaxed px-4">
+              <p>1. Wajib menggunakan mode <strong>layar penuh (fullscreen)</strong>.</p>
+              <p>2. Dilarang berpindah tab, membuka aplikasi lain, atau DevTools.</p>
+              <p>3. Pelanggaran lebih dari 2x akan berakibat <strong>diskualifikasi otomatis</strong>.</p>
+              <p>4. Total durasi pengerjaan adalah <strong>{testData.duration} menit</strong>.</p>
+              <p>5. <strong>Seluruh pertanyaan wajib dijawab</strong> sebelum mengakhiri ujian.</p>
+            </div>
+            <button
+              onClick={handleStartExam}
+              className="w-full py-4 bg-indigo-600 text-white font-bold rounded-2xl shadow-lg shadow-indigo-100 active:scale-95 transition-all text-lg"
+            >
+              Mulai Ujian
+            </button>
           </div>
         ) : (
-          <>
-            {/* Main Content: Current Question */}
-            <div className="flex-1 flex flex-col gap-6">
-              <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden flex flex-col flex-1">
-                <div className="px-8 py-4 bg-gray-50 border-b border-gray-100 flex justify-between items-center">
-                  <span className="text-sm font-black text-gray-500 uppercase tracking-widest">
-                    PERTANYAAN {currentQuestionIndex + 1} DARI {totalQuestions}
-                  </span>
-                  <span className={clsx(
-                    "text-[10px] font-black px-2 py-1 rounded-md uppercase tracking-tighter",
-                    answers[currentQuestion?.id] ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"
-                  )}>
-                    {answers[currentQuestion?.id] ? 'Sudah Terjawab' : 'Belum Terjawab'}
-                  </span>
-                </div>
+          <div className="flex-1 flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-500">
+            {/* Progress Bar & Counter */}
+            <div className="mb-8">
+              <div className="flex justify-between items-end mb-2">
+                <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">
+                  Pertanyaan {currentQuestionIndex + 1} / {totalQuestions}
+                </span>
+                <span className={clsx(
+                  "text-[10px] font-bold px-2 py-1 rounded-lg border",
+                  answers[currentQuestion?.id] ? "bg-green-50 text-green-700 border-green-100" : "bg-amber-50 text-amber-700 border-amber-100"
+                )}>
+                  {answers[currentQuestion?.id] ? 'Terjawab' : 'Belum Terjawab'}
+                </span>
+              </div>
+              <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-indigo-500 transition-all duration-500"
+                  style={{ width: `${((currentQuestionIndex + 1) / totalQuestions) * 100}%` }}
+                ></div>
+              </div>
+            </div>
 
-                <div className="p-8 flex-1 overflow-y-auto">
-                  <div className="max-w-3xl mx-auto">
-                    <h2 className="text-xl md:text-2xl font-bold text-gray-800 leading-relaxed mb-10">
-                      {currentQuestion?.question}
-                    </h2>
+            {/* Question Text */}
+            <h2 className="text-xl md:text-2xl font-bold text-gray-800 leading-snug mb-10">
+              {currentQuestion?.question}
+            </h2>
 
-                    {currentQuestion?.type === 'multiple_choice' ? (
-                      <div className="space-y-4">
-                        {currentQuestion?.options.map((option, i) => (
-                          <label
-                            key={i}
-                            className={clsx(
-                              "group relative flex items-center p-5 border-2 rounded-2xl cursor-pointer transition-all active:scale-[0.98]",
-                              answers[currentQuestion.id] === option
-                                ? "border-blue-600 bg-blue-50 text-blue-700 ring-4 ring-blue-50"
-                                : "border-gray-100 hover:border-blue-300 hover:bg-gray-50"
-                            )}
-                          >
-                            <input
-                              type="radio"
-                              name={`question-${currentQuestion.id}`}
-                              value={option}
-                              checked={answers[currentQuestion.id] === option}
-                              onChange={() => handleOptionChange(currentQuestion.id, option)}
-                              className="sr-only"
-                            />
-                            <div className={clsx(
-                              "w-10 h-10 rounded-xl flex items-center justify-center font-black mr-4 transition-all",
-                              answers[currentQuestion.id] === option
-                                ? "bg-blue-600 text-white"
-                                : "bg-gray-100 text-gray-500 group-hover:bg-blue-100 group-hover:text-blue-600"
-                            )}>
-                              {String.fromCharCode(65 + i)}
-                            </div>
-                            <span className="font-bold text-lg">{option}</span>
-                          </label>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="mt-4">
-                        <textarea
-                          placeholder="Ketik jawaban Anda di sini..."
-                          value={answers[currentQuestion?.id] || ''}
-                          onChange={(e) => handleOptionChange(currentQuestion.id, e.target.value)}
-                          className="w-full h-64 p-6 border-2 border-gray-100 rounded-3xl focus:border-blue-600 focus:ring-4 focus:ring-blue-50 transition-all resize-none font-medium text-lg"
-                        ></textarea>
-                      </div>
+            {/* Options */}
+            {currentQuestion?.type === 'multiple_choice' ? (
+              <div className="space-y-3">
+                {currentQuestion?.options.map((option, i) => (
+                  <label
+                    key={i}
+                    className={clsx(
+                      "flex items-center p-5 border-2 rounded-2xl cursor-pointer transition-all active:scale-[0.98]",
+                      answers[currentQuestion.id] === option
+                        ? "border-indigo-600 bg-indigo-50/30 ring-1 ring-indigo-600"
+                        : "border-gray-100 hover:border-gray-200 bg-white"
                     )}
-                  </div>
-                </div>
-
-                {/* Navigation Buttons */}
-                <div className="p-6 border-t border-gray-100 bg-white flex justify-between items-center gap-4">
-                  <button
-                    onClick={() => setCurrentQuestionIndex(prev => Math.max(0, prev - 1))}
-                    disabled={currentQuestionIndex === 0}
-                    className="flex-1 md:flex-none flex items-center justify-center px-8 py-4 border-2 border-gray-100 rounded-2xl font-black text-gray-400 hover:text-gray-900 hover:border-gray-900 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
                   >
-                    <ChevronLeft className="w-5 h-5 mr-2" />
-                    SEBELUMNYA
+                    <input
+                      type="radio"
+                      name={`question-${currentQuestion.id}`}
+                      value={option}
+                      checked={answers[currentQuestion.id] === option}
+                      onChange={() => handleOptionChange(currentQuestion.id, option)}
+                      className="sr-only"
+                    />
+                    <div className={clsx(
+                      "w-8 h-8 rounded-lg flex items-center justify-center font-bold mr-4",
+                      answers[currentQuestion.id] === option
+                        ? "bg-indigo-600 text-white"
+                        : "bg-gray-100 text-gray-400"
+                    )}>
+                      {String.fromCharCode(65 + i)}
+                    </div>
+                    <span className={clsx(
+                      "font-medium",
+                      answers[currentQuestion.id] === option ? "text-indigo-900" : "text-gray-700"
+                    )}>{option}</span>
+                  </label>
+                ))}
+              </div>
+            ) : (
+              <textarea
+                placeholder="Ketik jawaban Anda di sini..."
+                value={answers[currentQuestion?.id] || ''}
+                onChange={(e) => handleOptionChange(currentQuestion.id, e.target.value)}
+                className="w-full h-64 p-5 border-2 border-gray-100 rounded-2xl focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 transition-all resize-none font-medium bg-gray-50"
+              ></textarea>
+            )}
+
+            {/* Sticky Bottom Actions */}
+            <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 p-5 z-40">
+              <div className="max-w-xl mx-auto flex items-center justify-between gap-4">
+                <button
+                  onClick={() => setCurrentQuestionIndex(prev => Math.max(0, prev - 1))}
+                  disabled={currentQuestionIndex === 0}
+                  className="p-4 border-2 border-gray-100 rounded-2xl disabled:opacity-30"
+                >
+                  <ChevronLeft className="w-6 h-6 text-gray-400" />
+                </button>
+
+                {currentQuestionIndex < totalQuestions - 1 ? (
+                  <button
+                    onClick={() => setCurrentQuestionIndex(prev => prev + 1)}
+                    className="flex-1 py-4 bg-indigo-600 text-white font-bold rounded-2xl shadow-lg shadow-indigo-100 active:scale-95 transition-all text-center"
+                  >
+                    Selanjutnya
                   </button>
+                ) : (
+                  <button
+                    onClick={() => setShowSubmitConfirm(true)}
+                    disabled={isSubmitting}
+                    className="flex-1 py-4 bg-indigo-600 text-white font-bold rounded-2xl shadow-lg shadow-indigo-100 active:scale-95 transition-all flex items-center justify-center gap-2"
+                  >
+                    {isSubmitting ? (
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                    ) : (
+                      <CheckCircle2 className="w-5 h-5" />
+                    )}
+                    {isSubmitting ? 'Mengirim...' : 'Selesai'}
+                  </button>
+                )}
+              </div>
+            </div>
 
-                  {currentQuestionIndex < totalQuestions - 1 ? (
-                    <button
-                      onClick={() => setCurrentQuestionIndex(prev => prev + 1)}
-                      className="flex-1 md:flex-none flex items-center justify-center px-12 py-4 bg-gray-900 text-white rounded-2xl font-black hover:bg-blue-600 transition-all shadow-xl shadow-gray-100 active:scale-95"
-                    >
-                      SELANJUTNYA
-                      <ChevronRight className="w-5 h-5 ml-2" />
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => setShowSubmitConfirm(true)}
-                      disabled={isSubmitting}
-                      className="flex-1 md:flex-none flex items-center justify-center px-12 py-4 bg-blue-600 text-white rounded-2xl font-black hover:bg-blue-700 transition-all shadow-xl shadow-blue-100 active:scale-95"
-                    >
-                      {isSubmitting ? <Loader2 className="w-6 h-6 animate-spin mr-2" /> : <Grid className="w-5 h-5 mr-2" />}
-                      {isSubmitting ? 'MENGIRIM...' : 'SELESAI UJIAN'}
-                    </button>
+            {/* Mobile Navigation Dots */}
+            <div className="flex justify-center gap-2 mt-10 opacity-30">
+              {testData.questions.map((_, i) => (
+                <div
+                  key={i}
+                  className={clsx(
+                    "w-1.5 h-1.5 rounded-full transition-all duration-300",
+                    currentQuestionIndex === i ? "w-4 bg-indigo-600" : "bg-gray-300"
                   )}
-                </div>
-              </div>
+                />
+              ))}
             </div>
-
-            {/* Sidebar: Question Navigator */}
-            <div className="w-full lg:w-[350px] space-y-6">
-              <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-6">
-                <h3 className="text-sm font-black text-gray-400 uppercase tracking-widest mb-6 flex items-center gap-2">
-                  <LayoutGrid className="w-4 h-4" />
-                  NAVIGASI SOAL
-                </h3>
-
-                <div className="grid grid-cols-5 gap-3">
-                  {testData.questions.map((q, i) => (
-                    <button
-                      key={q.id}
-                      onClick={() => setCurrentQuestionIndex(i)}
-                      className={clsx(
-                        "w-full aspect-square rounded-xl flex items-center justify-center font-black text-sm transition-all border-2 active:scale-90",
-                        currentQuestionIndex === i
-                          ? "bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-100"
-                          : answers[q.id]
-                            ? "bg-green-50 text-green-600 border-green-200"
-                            : "bg-white text-gray-400 border-gray-100 hover:border-gray-300"
-                      )}
-                    >
-                      {i + 1}
-                    </button>
-                  ))}
-                </div>
-
-                <div className="mt-8 pt-6 border-t border-gray-50 flex flex-wrap gap-4 text-[11px] font-black uppercase tracking-tighter">
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 bg-blue-600 rounded-sm"></div>
-                    <span className="text-gray-500">Aktif</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 bg-green-50 border border-green-200 rounded-sm"></div>
-                    <span className="text-gray-500">Terjawab</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 bg-white border border-gray-100 rounded-sm"></div>
-                    <span className="text-gray-500">Belum</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Progress Summary */}
-              <div className="bg-blue-600 rounded-3xl shadow-xl shadow-blue-100 p-8 text-white">
-                <p className="text-blue-100 text-xs font-black uppercase tracking-widest mb-4">Ringkasan Progress</p>
-                <div className="flex items-end justify-between mb-2">
-                  <h4 className="text-4xl font-black">
-                    {Object.keys(answers).length}
-                    <span className="text-blue-300 text-xl font-bold ml-1">/ {totalQuestions}</span>
-                  </h4>
-                  <p className="text-blue-100 font-bold mb-1">
-                    {Math.round((Object.keys(answers).length / totalQuestions) * 100)}%
-                  </p>
-                </div>
-                <div className="w-full h-3 bg-blue-700/50 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-white transition-all duration-500 ease-out"
-                    style={{ width: `${(Object.keys(answers).length / totalQuestions) * 100}%` }}
-                  ></div>
-                </div>
-              </div>
-            </div>
-          </>
+          </div>
         )}
-      </div>
+      </main>
+
+      {/* Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={showSubmitConfirm}
+        title={Object.keys(answers).length < totalQuestions ? "Jawaban Belum Lengkap" : "Selesai Ujian?"}
+        message={Object.keys(answers).length < totalQuestions
+          ? `Anda baru menjawab ${Object.keys(answers).length} dari ${totalQuestions} soal. Seluruh pertanyaan wajib diisi sebelum dikirim.`
+          : "Pastikan semua jawaban telah terisi dengan benar. Anda tidak dapat kembali setelah mengirim."}
+        confirmText={Object.keys(answers).length < totalQuestions ? "Mengerti" : "Ya, Selesai"}
+        cancelText={Object.keys(answers).length < totalQuestions ? "" : "Batal"}
+        type={Object.keys(answers).length < totalQuestions ? "warning" : "info"}
+        onConfirm={() => {
+          if (Object.keys(answers).length < totalQuestions) {
+            setShowSubmitConfirm(false);
+          } else {
+            setShowSubmitConfirm(false);
+            handleSubmitExam();
+          }
+        }}
+        onCancel={() => setShowSubmitConfirm(false)}
+      />
     </div>
   );
 };

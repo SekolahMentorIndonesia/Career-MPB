@@ -54,82 +54,82 @@ const UserPsychotest = () => {
   }
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
-      <h1 className="text-3xl font-bold text-gray-900 mb-6">Psikotes</h1>
+    <div className="min-h-screen bg-white font-sans text-gray-900 antialiased p-6 pb-20">
+      <div className="max-w-md mx-auto">
+        {/* Header */}
+        <div className="flex items-center gap-4 mb-10">
+          <div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-100">
+            <Brain className="w-6 h-6 text-white" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight text-indigo-900">Psikotes</h1>
+            <p className="text-xs text-gray-400 font-medium">Rekrutmen MPB Corps</p>
+          </div>
+        </div>
 
-      <div className="bg-white shadow-lg rounded-2xl p-8 mb-8 border border-gray-100">
-        <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-          {status.icon} Status Tahapan Seleksi
-        </h2>
-
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 p-6 rounded-2xl bg-gray-50 border border-gray-100">
-          <div className="space-y-1">
-            <p className="text-lg font-bold text-gray-900">{status.text}</p>
-            <p className="text-gray-600 max-w-xl">{status.subtext}</p>
+        {/* Status Card */}
+        <div className="bg-white border-2 border-gray-50 rounded-[2rem] p-8 mb-8 shadow-sm">
+          <div className="flex items-center gap-2 mb-6">
+            <div className="w-1.5 h-1.5 rounded-full bg-indigo-500"></div>
+            <h2 className="text-xs font-bold text-gray-400 uppercase tracking-widest">Status Seleksi</h2>
           </div>
 
-          <div className="flex items-center">
-            {data?.link ? (
+          <div className="flex flex-col gap-6">
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 bg-gray-50 rounded-2xl flex items-center justify-center border border-gray-100">
+                {status.icon}
+              </div>
+              <div>
+                <p className="text-xl font-bold text-gray-900">{status.text}</p>
+                <p className="text-xs text-gray-500 font-medium mt-0.5">{status.subtext}</p>
+              </div>
+            </div>
+
+            {data?.link && (
               <a
                 href={data.link}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200"
+                className="group flex items-center justify-center gap-3 w-full py-4 bg-indigo-600 text-white font-bold rounded-2xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100 active:scale-95 text-base"
               >
-                Mulai Psikotes <ExternalLink className="w-5 h-5" />
+                Mulai Psikotes
+                <ExternalLink className="w-4 h-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
               </a>
-            ) : (
-              <span className="px-4 py-2 bg-gray-200 text-gray-500 font-bold rounded-lg text-sm">
-                Akses Belum Tersedia
-              </span>
             )}
           </div>
         </div>
-      </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-white shadow-md rounded-xl p-6 border border-gray-100">
-          <h3 className="text-lg font-bold text-gray-900 mb-2">Informasi Penting Psikotes</h3>
-          <p className="text-sm text-gray-500 mb-4 font-medium italic">Mohon dibaca sebelum memulai tes:</p>
-          <ul className="space-y-3 text-[13px] text-gray-600 leading-relaxed">
-            <li className="flex gap-3">
-              <span className="text-indigo-600 font-bold shrink-0">•</span>
-              <span>Psikotes ini merupakan bagian dari proses seleksi rekrutmen.</span>
-            </li>
-            <li className="flex gap-3">
-              <span className="text-indigo-600 font-bold shrink-0">•</span>
-              <span>Setiap peserta hanya dapat mengerjakan 1 (satu) kali.</span>
-            </li>
-            <li className="flex gap-3">
-              <span className="text-indigo-600 font-bold shrink-0">•</span>
-              <span>Pastikan Anda berada dalam kondisi tenang, fokus, dan tanpa gangguan.</span>
-            </li>
-            <li className="flex gap-3">
-              <span className="text-indigo-600 font-bold shrink-0">•</span>
-              <span>Gunakan perangkat pribadi (laptop/PC disarankan).</span>
-            </li>
-            <li className="flex gap-3">
-              <span className="text-indigo-600 font-bold shrink-0">•</span>
-              <span>Sistem akan mencatat aktivitas selama pengerjaan untuk menjaga keadilan dan integritas tes.</span>
-            </li>
-            <li className="flex gap-3">
-              <span className="text-indigo-600 font-bold shrink-0">•</span>
-              <span>Hasil psikotes akan digunakan sebagai bahan evaluasi dan tidak dapat diubah setelah dikirim.</span>
-            </li>
-          </ul>
-        </div>
+        {/* Info Section */}
+        <div className="space-y-6">
+          <div className="bg-gray-50 rounded-3xl p-6 border border-gray-100">
+            <h3 className="text-sm font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <CheckCircle className="w-4 h-4 text-indigo-500" />
+              Informasi Penting
+            </h3>
+            <ul className="space-y-3">
+              {[
+                "Pengerjaan hanya dapat dilakukan 1 kali.",
+                "Gunakan laptop/PC untuk pengalaman terbaik.",
+                "Pastikan koneksi internet stabil.",
+                "Sistem anti-cheat aktif secara otomatis."
+              ].map((text, idx) => (
+                <li key={idx} className="flex gap-3 text-xs text-gray-600 leading-relaxed">
+                  <span className="text-indigo-300">•</span>
+                  {text}
+                </li>
+              ))}
+            </ul>
+          </div>
 
-        <div className="bg-blue-600 shadow-lg rounded-xl p-6 text-white">
-          <h3 className="text-lg font-bold mb-4">Butuh Bantuan?</h3>
-          <p className="text-blue-100 text-sm mb-6">
-            Jika mengalami kendala teknis saat mengerjakan psikotes, silakan hubungi tim IT Support kami.
-          </p>
-          <button
-            onClick={() => window.open('https://wa.me/6283198291207', '_blank')}
-            className="px-4 py-2 bg-white text-blue-600 font-bold rounded-lg text-sm hover:bg-blue-50 transition-colors"
-          >
-            Hubungi CS MPB
-          </button>
+          <div className="flex flex-col items-center justify-center p-6 text-center">
+            <p className="text-xs text-gray-400 font-medium mb-4">Butuh bantuan teknis?</p>
+            <button
+              onClick={() => window.open('https://wa.me/6283198291207', '_blank')}
+              className="text-xs font-bold text-indigo-600 hover:text-indigo-700 underline flex items-center gap-1"
+            >
+              Hubungi CS Support
+            </button>
+          </div>
         </div>
       </div>
     </div>

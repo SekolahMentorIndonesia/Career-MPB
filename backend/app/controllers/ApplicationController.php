@@ -47,7 +47,7 @@ class ApplicationController {
                         j.title as job_title,
                         MAX(p.score) as psychotest_score,
                         MAX(p.results) as psychotest_results,
-                        (SELECT JSON_ARRAYAGG(JSON_OBJECT('name', stage_name, 'status', status)) 
+                        (SELECT CONCAT('[', GROUP_CONCAT(JSON_OBJECT('name', stage_name, 'status', status)), ']') 
                          FROM application_stages WHERE application_id = a.id) as stages
                       FROM applications a
                       JOIN users u ON a.user_id = u.id
@@ -111,7 +111,7 @@ class ApplicationController {
                         j.title as job_title,
                         (SELECT MAX(score) FROM psychotests WHERE application_id = a.id) as psychotest_score,
                         (SELECT MAX(results) FROM psychotests WHERE application_id = a.id) as psychotest_results,
-                        (SELECT JSON_ARRAYAGG(JSON_OBJECT('name', stage_name, 'status', status)) 
+                        (SELECT CONCAT('[', GROUP_CONCAT(JSON_OBJECT('name', stage_name, 'status', status)), ']') 
                          FROM application_stages WHERE application_id = a.id) as stages
                       FROM applications a
                       JOIN users u ON a.user_id = u.id
@@ -143,7 +143,7 @@ class ApplicationController {
             $query = "SELECT
                         a.id, a.user_id, a.job_id, a.status, a.created_at, a.rejected_at,
                         j.title as job_title,
-                        (SELECT JSON_ARRAYAGG(JSON_OBJECT('name', stage_name, 'status', status)) 
+                        (SELECT CONCAT('[', GROUP_CONCAT(JSON_OBJECT('name', stage_name, 'status', status)), ']') 
                          FROM application_stages WHERE application_id = a.id) as stages
                       FROM applications a
                       JOIN jobs j ON a.job_id = j.id
