@@ -1079,6 +1079,28 @@ const AdminApplicants = () => {
                           </div>
                         )}
 
+                        {selectedApplicant.transcript_url ? (
+                          <a
+                            href={`${window.API_BASE_URL}${selectedApplicant.transcript_url}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-2xl hover:border-blue-500 hover:shadow-md transition-all group"
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className="p-2 bg-indigo-50 text-indigo-500 rounded-xl group-hover:bg-indigo-500 group-hover:text-white transition-all">
+                                <FileText className="w-5 h-5" />
+                              </div>
+                              <span className="text-sm font-bold text-gray-700">Transkrip Nilai</span>
+                            </div>
+                            <LinkIcon className="w-4 h-4 text-gray-400 group-hover:text-blue-500" />
+                          </a>
+                        ) : (
+                          <div className="p-4 bg-gray-50 border border-dashed border-gray-300 rounded-2xl flex items-center gap-3 grayscale opacity-60">
+                            <FileText className="w-5 h-5 text-gray-400" />
+                            <span className="text-sm text-gray-500 italic">Transkrip belum diunggah</span>
+                          </div>
+                        )}
+
                         {selectedApplicant.portfolio_url && (
                           <a
                             href={`${window.API_BASE_URL}${selectedApplicant.portfolio_url}`}

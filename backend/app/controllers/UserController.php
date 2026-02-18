@@ -357,6 +357,7 @@ class UserController {
                 'portofolioFile' => ['field' => 'portfolio_url', 'types' => ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg', 'image/webp'], 'label' => 'Portofolio'],
                 'ktp' => ['field' => 'ktp_url', 'types' => ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'], 'label' => 'KTP'],
                 'ijazah' => ['field' => 'ijazah_url', 'types' => ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg', 'image/webp'], 'label' => 'Ijazah'],
+                'transkripNilai' => ['field' => 'transcript_url', 'types' => ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg', 'image/webp'], 'label' => 'Transkrip Nilai'],
                 'sertifikat' => ['field' => 'other_url', 'types' => ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg', 'image/webp'], 'label' => 'Sertifikat'],
                 'paklaring' => ['field' => 'paklaring_url', 'types' => ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg', 'image/webp'], 'label' => 'Paklaring']
             ];
@@ -524,7 +525,7 @@ class UserController {
             $docStmt->execute([':id' => $user['id']]);
             $docs = $docStmt->fetch(PDO::FETCH_ASSOC);
             
-            $isDocumentUploaded = ($docs && !empty($docs['cv_url']) && !empty($docs['photo_url']) && !empty($docs['ktp_url']) && !empty($docs['ijazah_url']));
+            $isDocumentUploaded = ($docs && !empty($docs['cv_url']) && !empty($docs['photo_url']) && !empty($docs['ktp_url']) && !empty($docs['ijazah_url']) && !empty($docs['transcript_url']));
 
             // 3. Application Status
             $appQuery = "SELECT COUNT(*) FROM applications WHERE user_id = :id";

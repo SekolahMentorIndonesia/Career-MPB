@@ -43,7 +43,7 @@ class ApplicationController {
                         u.domicile_rt as applicant_domicile_rt,
                         u.domicile_rw as applicant_domicile_rw,
                         u.domicile_kabupaten as applicant_domicile_kabupaten,
-                        d.cv_url, d.ktp_url, d.photo_url, d.ijazah_url, d.other_url, d.paklaring_url, d.portfolio_url, d.portfolio_link,
+                        d.cv_url, d.ktp_url, d.photo_url, d.ijazah_url, d.transcript_url, d.other_url, d.paklaring_url, d.portfolio_url, d.portfolio_link,
                         j.title as job_title,
                         MAX(p.score) as psychotest_score,
                         MAX(p.results) as psychotest_results,
@@ -59,7 +59,7 @@ class ApplicationController {
                                u.birth_place, u.birth_date, u.last_education, u.gpa, u.major, u.skills,
                                u.ktp_address, u.ktp_rt, u.ktp_rw, u.ktp_kabupaten,
                                u.domicile_address, u.domicile_rt, u.domicile_rw, u.domicile_kabupaten,
-                               d.cv_url, d.ktp_url, d.photo_url, d.ijazah_url, d.other_url, d.paklaring_url, d.portfolio_url, d.portfolio_link,
+                               d.cv_url, d.ktp_url, d.photo_url, d.ijazah_url, d.transcript_url, d.other_url, d.paklaring_url, d.portfolio_url, d.portfolio_link,
                                j.title
                       ORDER BY a.created_at DESC";
             
@@ -107,7 +107,7 @@ class ApplicationController {
                         u.domicile_rt as applicant_domicile_rt,
                         u.domicile_rw as applicant_domicile_rw,
                         u.domicile_kabupaten as applicant_domicile_kabupaten,
-                        d.cv_url, d.ktp_url, d.photo_url, d.ijazah_url, d.other_url, d.paklaring_url, d.portfolio_url, d.portfolio_link,
+                        d.cv_url, d.ktp_url, d.photo_url, d.ijazah_url, d.transcript_url, d.other_url, d.paklaring_url, d.portfolio_url, d.portfolio_link,
                         j.title as job_title,
                         (SELECT MAX(score) FROM psychotests WHERE application_id = a.id) as psychotest_score,
                         (SELECT MAX(results) FROM psychotests WHERE application_id = a.id) as psychotest_results,
